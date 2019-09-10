@@ -7,7 +7,9 @@ DEPS	=	main.py \
 			hole_widgit.py \
 			data_store.py \
 			upper_frame.py \
-			lower_frame.py
+			lower_frame.py \
+			logger.py \
+			exception.py
 
 all: $(TARGET)
 

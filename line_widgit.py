@@ -2,6 +2,7 @@ from tkinter import messagebox
 import tkinter
 
 from hole_widgit import HoleSizeWidgit
+from logger import Logger
 
 class LineWidgit(tkinter.Frame):
     '''
@@ -23,6 +24,8 @@ class LineWidgit(tkinter.Frame):
                     diff=0.0,
                     units=False,
                     fracs=True):
+        self.logger = Logger("LineWidgit", level=Logger.ERROR)
+        self.logger.debug("constructor")
 
         tkinter.Frame.__init__(self, parent)
 
@@ -50,11 +53,13 @@ class LineWidgit(tkinter.Frame):
 
         self.hole_ctl = HoleSizeWidgit(self)
         self.hole_ctl.config(padx=25)
+        # TODO: make defaults configurable and move to data_store
         self.hole_ctl.set_startval(11/32)
         self.hole_ctl.set_incval(1/64)
         self.hole_ctl.set_maxval(1/2)
         self.hole_ctl.set_minval(3/32)
         self.hole_ctl.set_frac(True)
+        #
         self.hole_ctl.grid(row=lineno+1, column=4)
 
         self.locat_ctl_txt = tkinter.StringVar()
@@ -78,6 +83,7 @@ class LineWidgit(tkinter.Frame):
         '''
         Place the data in the data_store into the display.
         '''
+        self.logger.debug("refresh()")
         data = self.data_store.get_line(self.index)
         self.inter_ctl.delete(0, tkinter.END)
         self.inter_ctl.insert(0, str(data['interval']))
@@ -89,17 +95,20 @@ class LineWidgit(tkinter.Frame):
 
         self.hole_ctl.set_units(self.data_store.get_units())
         self.hole_ctl.set_frac(self.data_store.get_disp_frac())
-        self.hole_ctl.set_startval(data['hole']) # HoleWidgit
+
+        #self.hole_ctl.set_startval(data['hole']) # HoleWidgit
+        self.hole_ctl.set_state(data['hole']) # HoleWidgit
 
     def store(self, data):
         '''
         Get the data out of the display and place it in the data_store.
         '''
+        self.logger.debug("store()")
         data = self.data_store.get_line(self.index)
         data['interval'] = int(self.inter_ctl.get())
         data['note'] = self.note_ctl_txt.get()
         data['freq'] = float(self.freq_ctl_txt.get().split()[0])
-        data['hole'] = float(self.hole_ctl.get())
+        data['hole'] = float(self.hole_ctl.get_state())
         data['location'] = float(self.locat_ctl_txt.get())
         data['diff'] = float(self.diff_ctl_txt.get())
         data['cutoff'] = float(self.cutoff_ctl_txt.get())

@@ -14,8 +14,8 @@ class DataStore:
 
     def __init__(self):
 
-        self.logger = Logger("data store", Logger.DEBUG)
-        self.logger.info("enter data store constructor")
+        self.logger = Logger("DataStore", Logger.DEBUG)
+        self.logger.debug("enter data store constructor")
         
         self.disp_frac = True   # True if the holes are displayed in fractions
         self.units = False      # True if the units are mm and false if it's inch
@@ -145,11 +145,11 @@ class DataStore:
         for num in range(len(self.note_table)):
                 self.bellNoteArray.append("%s (%s Hz)"%(self.note_table[num]["note"], str(self.note_table[num]["frequency"])))
 
-        self.logger.info("leave data store constructor")
+        self.logger.debug("leave data store constructor")
 
     # get by data structure
     def get_data(self):
-        self.logger.info("get data by structure")
+        self.logger.debug("get data by structure")
         return {
             'disp_frac':self.disp_frac,
             'units':self.units,
@@ -165,7 +165,8 @@ class DataStore:
 
     # set by data structure
     def set_data(self, data):
-        self.logger.info("set data by structure")
+        self.logger.debug("set data by structure")
+
         self.disp_frac = data['disp_frac']
         self.units = data['units']
         self.title = data['title']
@@ -177,97 +178,96 @@ class DataStore:
         self.bell_freq = data['bell_freq']
         self.line_store = data['line_store']
 
+    # get and set the line data structure
+    def get_line(self, index):
+        return self.line_store[index]
+
+    def set_line(self, index, line):
+        self.line_store[index] = self.validate_type(line, dict)
+
     # individual getters
     def get_disp_frac(self):
-        self.logger.info("get_disp_frac(): %s"%(str(self.disp_frac)))
+        self.logger.debug("get_disp_frac(): %s"%(str(self.disp_frac)))
         return self.disp_frac
     
     def get_units(self):
-        self.logger.info("get_units(): %s"%(str(self.units)))
+        self.logger.debug("get_units(): %s"%(str(self.units)))
         return self.units
 
     def get_title(self):
-        self.logger.info("get_title(): %s"%(str(self.title)))
+        self.logger.debug("get_title(): %s"%(str(self.title)))
         return self.title
 
     def get_inside_dia(self):
-        self.logger.info("get_inside_dia(): %s"%(str(self.inside_dia)))
+        self.logger.debug("get_inside_dia(): %s"%(str(self.inside_dia)))
         return self.inside_dia
 
     def get_wall_thickness(self):
-        self.logger.info("get_wall_thickness(): %s"%(str(self.wall_thickness)))
+        self.logger.debug("get_wall_thickness(): %s"%(str(self.wall_thickness)))
         return self.wall_thickness
 
     def get_number_holes(self):
-        self.logger.info("get_number_holes(): %s"%(str(self.number_holes)))
+        self.logger.debug("get_number_holes(): %s"%(str(self.number_holes)))
         return self.number_holes
 
     def get_bell_selection(self):
-        self.logger.info("get_bell_selection(): %s"%(str(self.bell_note_select)))
+        self.logger.debug("get_bell_selection(): %s"%(str(self.bell_note_select)))
         return self.bell_note_select
 
     def get_emb_area(self):
-        self.logger.info("get_disp_frac(): %s"%(str(self.disp_frac)))
+        self.logger.debug("get_disp_frac(): %s"%(str(self.disp_frac)))
         return self.embouchure_area
 
     def get_bell_freq(self):
-        self.logger.info("get_emb_area(): %s"%(str(self.bell_freq)))
+        self.logger.debug("get_emb_area(): %s"%(str(self.bell_freq)))
         return self.bell_freq
 
 #    def get_line_data(self):
-#        self.logger.info("DataStore.get_line_data(): %s"%(str(self.line_data)))
+#        self.logger.debug("DataStore.get_line_data(): %s"%(str(self.line_data)))
 #        return self.line_data
 
     # individual setters
     def set_disp_frac(self, data):
         self.disp_frac = self.validate_type(data, bool)
-        self.logger.info("set_disp_frac(): %s"%(str(self.disp_frac)))
+        self.logger.debug("set_disp_frac(): %s"%(str(self.disp_frac)))
 
     def set_units(self, data):
         self.units = self.validate_type(data, bool)
-        self.logger.info("set_units(): %s"%(str(self.units)))
+        self.logger.debug("set_units(): %s"%(str(self.units)))
 
     def set_title(self, data):
         self.title = self.validate_type(data, str)
-        self.logger.info("set_title(): %s"%(str(self.title)))
+        self.logger.debug("set_title(): %s"%(str(self.title)))
 
     def set_inside_dia(self, data):
         self.inside_dia = self.validate_type(data, float)
-        self.logger.info("set_inside_dia(): %s"%(str(self.inside_dia)))
+        self.logger.debug("set_inside_dia(): %s"%(str(self.inside_dia)))
 
     def set_wall_thickness(self, data):
         self.wall_thickness = self.validate_type(data, float)
-        self.logger.info("set_wall_thickness(): %s"%(str(self.wall_thickness)))
+        self.logger.debug("set_wall_thickness(): %s"%(str(self.wall_thickness)))
 
     def set_number_holes(self, data):
         self.number_holes = self.validate_type(data, int)
-        self.logger.info("set_number_holes(): %s"%(str(self.number_holes)))
+        self.logger.debug("set_number_holes(): %s"%(str(self.number_holes)))
 
     def set_bell_selection(self, data):
         self.bell_note_select = self.validate_type(data, int)
-        self.logger.info("set_bell_selection(): %s"%(str(self.bell_note_select)))
+        self.logger.debug("set_bell_selection(): %s"%(str(self.bell_note_select)))
 
     def set_emb_area(self, data):
         self.embouchure_area = self.validate_type(data, float)
-        self.logger.info("set_emb_area(): %s"%(str(self.embouchure_area)))
+        self.logger.debug("set_emb_area(): %s"%(str(self.embouchure_area)))
 
     def set_bell_freq(self, data):
         self.bell_freq = self.validate_type(data, float)
-        self.logger.info("set_bell_freq(): %s"%(str(self.bell_freq)))
+        self.logger.debug("set_bell_freq(): %s"%(str(self.bell_freq)))
 
 #    def set_line_data(self, data):
 #        if type(data) != type(0.0):
 #            messagebox.showerror("Error", "set_line_data: expected type %s but got type %s"%(type(0.0), type(data)))
 #            return
 #        self.line_data = data
-
-    # get and set the line data structure
-    def get_line(self, index):
-        return self.line_store[index]
-
-    def set_line(self, index, line):
-        #self.line_store[index] = line
-        self.line_store[index] = self.validate_type(line, dict)
 
     def validate_type(self, var, t):
         '''
@@ -281,12 +281,8 @@ class DataStore:
                     tmp = float(var)
                     return tmp
                 except ValueError:
-                    #messagebox.showerror("Dev Error", "validate_type: expected type %s but got type %s"%(t, type(var)))
-                    #self.logger.fatal("validate_type: expected type %s but got type %s"%(t, type(var)))
                     raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
                 except:
-                    #messagebox.showerror("Dev Error", "validate_type: float type error. Cannot continue.")
-                    #self.logger.fatal("validate_type: int type error.")
                     raise AppFatalError("float type error.", "validate_type")
 
             elif t is int:
@@ -294,12 +290,8 @@ class DataStore:
                     tmp = int(var)
                     return tmp
                 except ValueError:
-                    #messagebox.showerror("Dev Error", "validate_type: expected type %s but got type %s"%(t, type(var)))
-                    #self.logger.fatal("validate_type: expected type %s but got type %s"%(t, type(var)))
                     raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
                 except:
-                    #messagebox.showerror("Dev Error", "validate_type: int type error. Cannot continue.")
-                    #self.logger.fatal("validate_type: int type error.")
                     raise AppFatalError("int type error.", "validate_type")
 
             elif t is bool:
@@ -307,12 +299,8 @@ class DataStore:
                     tmp = bool(var)
                     return tmp
                 except ValueError:
-                    #messagebox.showerror("Dev Error", "validate_type: expected type %s but got type %s"%(t, type(var)))
-                    #self.logger.fatal("validate_type: expected type %s but got type %s"%(t, type(var)))
                     raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
                 except:
-                    #messagebox.showerror("Dev Error", "validate_type: int type error. Cannot continue.")
-                    #self.logger.fatal("validate_type: int type error.")
                     raise AppFatalError("bool type error.", "validate_type")
 
             elif t is str:
@@ -320,7 +308,5 @@ class DataStore:
                 return str(var)
             else:
                 raise AppFatalError("attempt to validate an unexpected type %s as type %s."%(str(type(var)), str(t)), "validate_type")
-                #messagebox.showerror("Dev Error", "validate_type: attempt to validate an unexpected type %s as type %s."%(type(var), t))
-                #self.logger.fatal("validate_type: attempt to validate an unexpected type %s as type %s."%(type(var), t))
         else:
             return var

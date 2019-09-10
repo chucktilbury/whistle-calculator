@@ -21,8 +21,10 @@ class Logger(object):
         self.stderr = 0
         self.stdout = 1
 
-        self.level = level
         self.name = name 
+        self.level = []
+        self.level.insert(0, level)
+
         if stream == self.STDERR:
             self.stream = sys.stderr
         else:
@@ -33,26 +35,36 @@ class Logger(object):
         return "%s %s: %s: %s\n"%(t, self.name, lev, args)
 
     def debug(self, args):
-        if self.level <= self.dbg:
+        if self.level[0] <= self.dbg:
             self.stream.write(self.fmt(args, 'DEBUG'))
 
     def info(self, args):
-        if self.level <= self.inf:
+        if self.level[0] <= self.inf:
             self.stream.write(self.fmt(args, 'INFO'))
 
     def warning(self, args):
-        if self.level <= self.warn:
+        if self.level[0] <= self.warn:
             self.stream.write(self.fmt(args, 'WARNING'))
 
     def error(self, args):
-        if self.level <= self.err:
+        if self.level[0] <= self.err:
             self.stream.write(self.fmt(args, 'ERROR'))
 
     def msg(self, args):
-        if self.level <= self.mess:
+        if self.level[0] <= self.mess:
             self.stream.write(self.fmt(args, 'MSG'))
 
     def fatal(self, args):
         self.stream.write(self.fmt(args, 'FATAL ERROR'))
         self.stream.write("System cannot continue\n\n")
         sys.exit(1)
+
+    def push_level(self, level):
+        self.level.insert(0, level)
+
+    def pop_level(self):
+        if len(self.level) > 1:
+            self.level.remove(0)
+
+    def set_level(self, level):
+        self.level[0] = level
