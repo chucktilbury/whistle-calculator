@@ -1,4 +1,5 @@
 from tkinter import messagebox
+from logger import Logger
 import tkinter
 import sys, math
 
@@ -14,6 +15,9 @@ class HoleSizeWidgit(tkinter.Frame):
         the maxval, minval, and increment is automatically switched to metric
         equivalent values.
         '''
+        self.logger = Logger("hole size widget", Logger.DEBUG)
+        self.logger.info("constructor")
+
         tkinter.Frame.__init__(self, parent)
 
         BITMAP_UP = """
@@ -58,16 +62,18 @@ class HoleSizeWidgit(tkinter.Frame):
 
     def set_frac(self, value):
         if type(value) != type(True):
-            messagebox.showerror("Internal Error", "Set Frac\nInvalid value passed to hole size widget.\nCannot continue.")
-            sys.exit()
+            #messagebox.showerror("Internal Error", "Set Frac\nInvalid value passed to hole size widget.\nCannot continue.")
+            #sys.exit()
+            raise AppFatalError("Invalid value passed to hole size widget.", "set frac")
         self.fract = value # only changes the display, not the actual value
         self.update_val()
 
     def set_units(self, value):
         #print("set the scale to ", value)
         if type(value) != type(True):
-            messagebox.showerror("Internal Error", "Set Scale\nInvalid value passed to hole size widget.\nCannot continue.")
-            sys.exit()
+            #messagebox.showerror("Internal Error", "Set Scale\nInvalid value passed to hole size widget.\nCannot continue.")
+            #sys.exit()
+            raise AppFatalError("Invalid value passed to hole size widget.", "set_units")
         if self.mm_in != value:
             if self.mm_in:
                 self.internal_value = self.internal_value / 0.03937008
@@ -82,8 +88,9 @@ class HoleSizeWidgit(tkinter.Frame):
             self.minval = float(value)
             self.update_val()
         except:
-            messagebox.showerror("Internal Error", "Min Value\nCannot convert value \"%s\" to\na floating point number.\nCannot continue."%(str(value)))
-            sys.exit()
+            #messagebox.showerror("Internal Error", "Min Value\nCannot convert value \"%s\" to\na floating point number.\nCannot continue."%(str(value)))
+            #sys.exit()
+            raise AppFatalError("Cannot convert value \"%s\" to a floating point number."%(str(value)), "set_minval")
 
     def set_maxval(self, value):
         #print("max value set to", value)
@@ -91,25 +98,31 @@ class HoleSizeWidgit(tkinter.Frame):
             self.maxval = float(value)
             self.update_val()
         except:
-            messagebox.showerror("Internal Error", "Max Value\nCannot convert value \"%s\" to\na floating point number.\nCannot continue."%(str(value)))
-            sys.exit()
+            #messagebox.showerror("Internal Error", "Max Value\nCannot convert value \"%s\" to\na floating point number.\nCannot continue."%(str(value)))
+            #sys.exit()
+            raise AppFatalError("Cannot convert value \"%s\" to a floating point number."%(str(value)), "set_maxval")
 
     def set_startval(self, value):
+        #print(type(value))
         try:
             self.internal_value = float(value)
             self.update_val()
-        except:
+        except ValueError:
             messagebox.showerror("Internal Error", "Start Value\nCannot convert value \"%s\" to\na floating point number.\nCannot continue."%(str(value)))
             sys.exit()
+        except Exception as e:
+            messagebox.showerror("Unknown Exception", "Start Value\nCannot convert value\n%s"%(str(e)))
+            self.logger.fatal("Unknown exception: %s"%(str(e)))
+
 
     def update_val(self):
-        #print("updating value to", self.internal_value)
+        self.logger.debug("updating value to %s"%(str(self.internal_value)))
         self.entry.delete(0, tkinter.END)
         if self.mm_in or (not self.mm_in and not self.fract):
-            print("here1", self.fract, self.mm_in)
+            #self.logger.debug("here1: %s: %s"%(str(self.fract), str(self.mm_in)))
             self.entry.insert(0, "%0.3f"%(self.internal_value))
         else:
-            print("here2", self.fract, self.mm_in)
+            #self.logger.debug("here2: %s: %s"%(str(self.fract), str(self.mm_in)))
             self.entry.insert(0, "%s"%(self.reduce()))
 
     def set_incval(self, value):
@@ -149,7 +162,9 @@ class HoleSizeWidgit(tkinter.Frame):
                 messagebox.showerror("ERROR", "Cannot convert internal value (%0.3f) to a fraction."%(self.internal_value))
                 return None
         # This can yield stupid values if w or f go below zero
-        return str(int(w))+"/"+str(int(f))
+        s = str(int(w))+"/"+str(int(f))
+        self.logger.debug("reduce: %s: %s"%(str(self.internal_value), s))
+        return s
 
     def fractof(self, frac):
         '''

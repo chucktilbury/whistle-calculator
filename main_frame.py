@@ -8,12 +8,16 @@ import sys, os
 from data_store import DataStore
 from lower_frame import LowerFrame
 from upper_frame import UpperFrame
+from logger import Logger
 
 class MainFrame(tkinter.Frame):
     '''
     This is the main frame that "contains" the other frames.
     '''
     def __init__(self, master=None):
+        self.logging = Logger("main frame")
+        self.logging.info("constructor")
+
         tkinter.Frame.__init__(self, master)
         self.master = master
         self.master.protocol("WM_DELETE_WINDOW", self.close_window)
@@ -55,7 +59,7 @@ class MainFrame(tkinter.Frame):
         self.lower_frame.create_frame()
 
     def close_window(self):
-        print("closing window")
+        self.logging.info("closing window")
         if messagebox.askyesno("Quit", "Are you sure you want to quit?"):
             self.master.destroy()
 

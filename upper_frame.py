@@ -128,8 +128,8 @@ class UpperFrame(tkinter.Frame):
                 self.numHolesEntry.insert(0, str(self.data_store.num_holes))
                 messagebox.showerror("Error", message="Number of holes must be an integer between 1 and 12.\nRead value was \"%s\"." % (v))
                 return False
-        except ValueError:# as e:
-            #print(repr(e))
+        except ValueError as e:
+            print(repr(e))
             self.numHolesEntry.delete(0, tkinter.END)
             self.numHolesEntry.insert(0, str(self.data_store.num_holes))
             messagebox.showerror("Error", message="Could not convert number of holes to an integer.\nRead value was \"%s\"." % (v))
