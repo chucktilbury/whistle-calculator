@@ -108,11 +108,13 @@ class HoleSizeWidgit(tkinter.Frame):
             self.internal_value = float(value)
             self.update_val()
         except ValueError:
-            messagebox.showerror("Internal Error", "Start Value\nCannot convert value \"%s\" to\na floating point number.\nCannot continue."%(str(value)))
-            sys.exit()
+            #messagebox.showerror("Internal Error", "Start Value\nCannot convert value \"%s\" to\na floating point number.\nCannot continue."%(str(value)))
+            #sys.exit()
+            raise AppFatalError("Cannot convert value \"%s\" to a floating point number."%(str(value)), "set_startval")
         except Exception as e:
-            messagebox.showerror("Unknown Exception", "Start Value\nCannot convert value\n%s"%(str(e)))
-            self.logger.fatal("Unknown exception: %s"%(str(e)))
+            #messagebox.showerror("Unknown Exception", "Start Value\nCannot convert value\n%s"%(str(e)))
+            #self.logger.fatal("Unknown exception: %s"%(str(e)))
+            raise AppFatalError("cannot convert value: %s"%(str(e)), "set_startval")
 
 
     def update_val(self):
@@ -129,8 +131,11 @@ class HoleSizeWidgit(tkinter.Frame):
         #print("increment value set to", value)
         try:
             self.increment = float(value)
-        except:
-            messagebox.showerror("Internal Error", "Set Increment Value\nCannot convert value \"%s\" to\na floating point number.\nCannot continue."%(str(value)))
+        except ValueError:
+            #messagebox.showerror("Internal Error", "Set Increment Value\nCannot convert value \"%s\" to\na floating point number.\nCannot continue."%(str(value)))
+            raise AppFatalError("Cannot convert value \"%s\" to a floating point number."%(str(value)), "set_incval")
+        except Exception as e:
+            raise AppFatalError("cannot convert value: %s"%(str(e)), "set_incval")
 
     # event handlers
     def incr_command(self):
@@ -159,8 +164,8 @@ class HoleSizeWidgit(tkinter.Frame):
             f = f / 2
 
             if f == 0:
-                messagebox.showerror("ERROR", "Cannot convert internal value (%0.3f) to a fraction."%(self.internal_value))
-                return None
+                #messagebox.showerror("ERROR", "Cannot convert internal value (%0.3f) to a fraction."%(self.internal_value))
+                raise AppError("Cannot convert internal value (%0.3f) to a fraction."%(self.internal_value), "reduce")
         # This can yield stupid values if w or f go below zero
         s = str(int(w))+"/"+str(int(f))
         self.logger.debug("reduce: %s: %s"%(str(self.internal_value), s))
