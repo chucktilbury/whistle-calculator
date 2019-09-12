@@ -12,10 +12,14 @@ class DataStore:
     contains.
     '''
 
+    # TODO: 
+    #  1. Read the default state from a configuration file.
+    #  2. Add methods to save and restore the default state.
+    #  3. Add methods to save and restore the current state as a "saved file".
     def __init__(self):
 
-        self.logger = Logger("DataStore", Logger.DEBUG)
-        self.logger.debug("enter data store constructor")
+        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
+        self.logger.debug(sys._getframe().f_code.co_name)
         
         self.disp_frac = True   # True if the holes are displayed in fractions
         self.units = False      # True if the units are mm and false if it's inch
@@ -140,16 +144,16 @@ class DataStore:
         ]
 
         # create an array of dictionaries to hold the values for each line
-        self.line_store = [{'index':k, 'name':'', 'interval':0, 'note':'', 'freq':0.0, 'hole':0.25, 'location':0.0, 'diff':0.0, 'cutoff':0.0} for k in range(12)]
+        #self.line_store = [{'index':k, 'name':'', 'interval':0, 'note':'', 'freq':0.0, 'hole':0.25, 'location':0.0, 'diff':0.0, 'cutoff':0.0} for k in range(12)]
+        self.line_store = []
         self.bellNoteArray = []
         for num in range(len(self.note_table)):
                 self.bellNoteArray.append("%s (%s Hz)"%(self.note_table[num]["note"], str(self.note_table[num]["frequency"])))
 
-        self.logger.debug("leave data store constructor")
 
     # get by data structure
-    def get_data(self):
-        self.logger.debug("get data by structure")
+    def get_state(self):
+        self.logger.debug(sys._getframe().f_code.co_name)
         return {
             'disp_frac':self.disp_frac,
             'units':self.units,
@@ -164,8 +168,8 @@ class DataStore:
         }
 
     # set by data structure
-    def set_data(self, data):
-        self.logger.debug("set data by structure")
+    def set_state(self, data):
+        self.logger.debug(sys._getframe().f_code.co_name)
 
         self.disp_frac = data['disp_frac']
         self.units = data['units']
@@ -183,8 +187,65 @@ class DataStore:
         return self.line_store[index]
 
     def set_line(self, index, line):
-        self.line_store[index] = self.validate_type(line, dict)
+        self.logger.debug(sys._getframe().f_code.co_name)
+        self.line_store.insert(index, line)
 
+    def del_line(self, index):
+        self.logger.debug(sys._getframe().f_code.co_name)
+        self.logger.debug("destroy line number %d"%(index))
+        return self.line_store.pop(index)
+
+    def get_line_store(self):
+        '''
+        Simply return the line store for direct manipulation.
+        '''
+        return self.line_store
+
+    # Utilities
+    def validate_type(self, var, t):
+        '''
+        Validate the type of the srguement. If it cannot be converted, then the program cannot continue.
+        This is considered a developer error. The exceptions here only happen if the input validation 
+        from the GUI has failed.
+        '''
+        self.logger.debug(sys._getframe().f_code.co_name)
+        if type(var) != t:
+            if t is float:
+                try:
+                    tmp = float(var)
+                    return tmp
+                except ValueError:
+                    raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
+                except:
+                    raise AppFatalError("float type error.", "validate_type")
+
+            elif t is int:
+                try:
+                    tmp = int(var)
+                    return tmp
+                except ValueError:
+                    raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
+                except:
+                    raise AppFatalError("int type error.", "validate_type")
+
+            elif t is bool:
+                try:
+                    tmp = bool(var)
+                    return tmp
+                except ValueError:
+                    raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
+                except:
+                    raise AppFatalError("bool type error.", "validate_type")
+
+            elif t is str:
+                # anything can be converted to a str()
+                return str(var)
+            else:
+                raise AppFatalError("attempt to validate an unexpected type %s as type %s."%(str(type(var)), str(t)), "validate_type")
+        else:
+            return var
+
+    '''
     # individual getters
     def get_disp_frac(self):
         self.logger.debug("get_disp_frac(): %s"%(str(self.disp_frac)))
@@ -263,50 +324,15 @@ class DataStore:
         self.bell_freq = self.validate_type(data, float)
         self.logger.debug("set_bell_freq(): %s"%(str(self.bell_freq)))
 
+    # Line getters and setters. These are so that the class using the line 
+    # only needs to know about the data_store object and not about the line
+    # object.
+
+
 #    def set_line_data(self, data):
 #        if type(data) != type(0.0):
 #            messagebox.showerror("Error", "set_line_data: expected type %s but got type %s"%(type(0.0), type(data)))
 #            return
 #        self.line_data = data
 
-    def validate_type(self, var, t):
-        '''
-        Validate the type of the srguement. If it cannot be converted, then the program cannot continue.
-        This is considered a developer error. The exceptions here only happen if the input validation 
-        from the GUI has failed.
-        '''
-        if type(var) != t:
-            if t is float:
-                try:
-                    tmp = float(var)
-                    return tmp
-                except ValueError:
-                    raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
-                except:
-                    raise AppFatalError("float type error.", "validate_type")
-
-            elif t is int:
-                try:
-                    tmp = int(var)
-                    return tmp
-                except ValueError:
-                    raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
-                except:
-                    raise AppFatalError("int type error.", "validate_type")
-
-            elif t is bool:
-                try:
-                    tmp = bool(var)
-                    return tmp
-                except ValueError:
-                    raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
-                except:
-                    raise AppFatalError("bool type error.", "validate_type")
-
-            elif t is str:
-                # anything can be converted to a str()
-                return str(var)
-            else:
-                raise AppFatalError("attempt to validate an unexpected type %s as type %s."%(str(type(var)), str(t)), "validate_type")
-        else:
-            return var
+    '''

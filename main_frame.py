@@ -15,8 +15,8 @@ class MainFrame(tkinter.Frame):
     This is the main frame that "contains" the other frames.
     '''
     def __init__(self, master=None):
-        self.logging = Logger("MainFrame")
-        self.logging.debug("constructor")
+        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
+        self.logger.debug(sys._getframe().f_code.co_name)
 
         tkinter.Frame.__init__(self, master)
         self.master = master
@@ -29,6 +29,7 @@ class MainFrame(tkinter.Frame):
 
         # set up some default values
         self.current_file_name = os.path.join(os.getcwd(), "untitled.wis")
+        # TODO: data_store constructor reads default data from the configuration file.
         self.data = DataStore()
         self.calc = Calculator(self.data)
         self.upper_frame = UpperFrame(self.general_params, self.data)
@@ -58,17 +59,17 @@ class MainFrame(tkinter.Frame):
         self.lower_frame.create_frame()
 
     def close_window(self):
-        self.logging.debug("close_window")
+        self.logger.debug(sys._getframe().f_code.co_name)
         if messagebox.askyesno("Quit", "Are you sure you want to quit?"):
             self.master.destroy()
 
     def loadCommand(self):
-        self.logging.debug("loadCommand")
+        self.logger.debug(sys._getframe().f_code.co_name)
         f = tkinter.filedialog.askopenfilename(initialfile=self.current_file_name, filetypes=(("Whistle Files","*.wis"), ("all files", "*.*")))
         print("loading file = " + f)
 
     def saveCommand(self):
-        self.logging.debug("saveCommand")
+        self.logger.debug(sys._getframe().f_code.co_name)
         d = tkinter.filedialog.askdirectory(initialdir=os.getcwd(), mustexist=True)
         p = os.path.join(d, self.current_file_name)
         print("saving file = " + p )
@@ -76,17 +77,17 @@ class MainFrame(tkinter.Frame):
         #f.close()
 
     def saveasCommand(self):
-        self.logging.debug("saveasCommand")
+        self.logger.debug(sys._getframe().f_code.co_name)
         f = tkinter.filedialog.asksaveasfilename(initialfile=self.current_file_name, filetypes=(("Whistle Files","*.wis"), ("all files", "*.*")))
         print("file save as = " + f)
 
     def helpCommand(self):
-        self.logging.debug("helpCommand")
+        self.logger.debug(sys._getframe().f_code.co_name)
         #print("display format: "+ self.displayFormatOpt.get())
         #print("measure units: "+ self.measureUnitsOpt.get())
         #print("bellnote: %s (%d)"%(str(self.bellNoteEntry.get()), self.bellNoteEntry.current()))
 
     def aboutCommand(self):
-        self.logging.debug("aboutCommand")
+        self.logger.debug(sys._getframe().f_code.co_name)
         messagebox.showinfo(
             "About", "Tilbury Woodwinds Company\nWhistle Calculator\nChuck Tilbury (c) 2019")

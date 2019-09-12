@@ -1,5 +1,6 @@
 from tkinter import messagebox
 import tkinter
+import sys
 
 from hole_widgit import HoleSizeWidgit
 from logger import Logger
@@ -24,8 +25,8 @@ class LineWidgit(tkinter.Frame):
                     diff=0.0,
                     units=False,
                     fracs=True):
-        self.logger = Logger("LineWidgit", level=Logger.ERROR)
-        self.logger.debug("constructor")
+        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
+        self.logger.debug(sys._getframe().f_code.co_name)
 
         tkinter.Frame.__init__(self, parent)
 
@@ -53,14 +54,22 @@ class LineWidgit(tkinter.Frame):
 
         self.hole_ctl = HoleSizeWidgit(self)
         self.hole_ctl.config(padx=25)
-        # TODO: make defaults configurable and move to data_store
-        self.hole_ctl.set_startval(11/32)
-        self.hole_ctl.set_incval(1/64)
-        self.hole_ctl.set_maxval(1/2)
-        self.hole_ctl.set_minval(3/32)
-        self.hole_ctl.set_frac(True)
-        #
         self.hole_ctl.grid(row=lineno+1, column=4)
+        # TODO: 
+        #   1, Move these default values to the data-store and allow them to be configured
+        #      via a configuration file.
+        data = self.hole_ctl.get_state() # get a copy of the state
+        data['mm_in'] = False
+        data['frac'] = True
+        data['inch_value'] = 11/32
+        data['inch_inc'] = 1/64
+        data['inch_max'] = 1/2
+        data['inch_min'] = 3/32
+        data['mm_value'] = 8.5
+        data['mm_inc'] = 0.5
+        data['mm_max'] = 12.5
+        data['mm_min'] = 2.5
+        self.hole_ctl.set_state(data)
 
         self.locat_ctl_txt = tkinter.StringVar()
         self.locat_ctl_txt.set(str(location))
@@ -79,12 +88,11 @@ class LineWidgit(tkinter.Frame):
 
         #self.get_data()
 
-    def refresh(self):
+    def set_state(self, data):
         '''
-        Place the data in the data_store into the display.
+        Place the data in the data_store into the GUI.
         '''
-        self.logger.debug("refresh()")
-        data = self.data_store.get_line(self.index)
+        self.logger.debug(sys._getframe().f_code.co_name)
         self.inter_ctl.delete(0, tkinter.END)
         self.inter_ctl.insert(0, str(data['interval']))
         self.note_ctl_txt.set(str(data['note'])) # Label
@@ -92,28 +100,29 @@ class LineWidgit(tkinter.Frame):
         self.locat_ctl_txt.set(str(data['location'])) # Label
         self.diff_ctl_txt.set(str(data['diff'])) # Label
         self.cutoff_ctl_txt.set(str(data['cutoff'])) # Label
-
-        self.hole_ctl.set_units(self.data_store.get_units())
-        self.hole_ctl.set_frac(self.data_store.get_disp_frac())
+        self.hole_ctl.set_state(data['hole'])
 
         #self.hole_ctl.set_startval(data['hole']) # HoleWidgit
         self.hole_ctl.set_state(data['hole']) # HoleWidgit
 
-    def store(self, data):
+    def get_state(self):
         '''
         Get the data out of the display and place it in the data_store.
         '''
-        self.logger.debug("store()")
-        data = self.data_store.get_line(self.index)
-        data['interval'] = int(self.inter_ctl.get())
-        data['note'] = self.note_ctl_txt.get()
-        data['freq'] = float(self.freq_ctl_txt.get().split()[0])
-        data['hole'] = float(self.hole_ctl.get_state())
-        data['location'] = float(self.locat_ctl_txt.get())
-        data['diff'] = float(self.diff_ctl_txt.get())
-        data['cutoff'] = float(self.cutoff_ctl_txt.get())
-        self.data_store.set_line(self.index, data)
+        self.logger.debug(sys._getframe().f_code.co_name)
+        return {
+            'interval':int(self.inter_ctl.get()),
+            'note':self.note_ctl_txt.get(), # str
+            'freq':float(self.freq_ctl_txt.get().split()[0]),
+            'hole':self.hole_ctl.get_state(), # dict
+            'location':float(self.locat_ctl_txt.get()),
+            'diff':float(self.diff_ctl_txt.get()),
+            'cutoff':float(self.cutoff_ctl_txt.get())
+        }
 
+    def print_state(self):
+        self.logger.debug(sys._getframe().f_code.co_name)
+        self.logger.msg(str(self.get_state()))
 
     """
     def get_data(self):

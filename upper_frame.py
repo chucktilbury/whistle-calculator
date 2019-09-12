@@ -1,6 +1,8 @@
 import tkinter
+import sys
 from tkinter import messagebox
 from tkinter import ttk
+from logger import Logger
 
 class UpperFrame(tkinter.Frame):
     '''
@@ -9,14 +11,18 @@ class UpperFrame(tkinter.Frame):
     def __init__(self, master, data_store):
         self.master = master
         self.data_store = data_store
+        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
+        self.logger.debug(sys._getframe().f_code.co_name)
+
 
     def create_frame(self):
         # build the screen
+        self.logger.debug(sys._getframe().f_code.co_name)
 
         # Fill in the upper frame
         tkinter.Label(self.master, text="Title").grid(row=0, column=0, sticky=tkinter.E)
-        self.lableEntry = tkinter.Entry(self.master, width=40)
-        self.lableEntry.grid(row=0, column=1, columnspan=3, padx=9, pady=4)
+        self.titleEntry = tkinter.Entry(self.master, width=40)
+        self.titleEntry.grid(row=0, column=1, columnspan=3, padx=9, pady=4)
 
         tkinter.Label(self.master, text="Inside Diameter").grid(row=1, column=0, sticky=tkinter.E, pady=4)
         self.insideDiaEntry = tkinter.Entry(self.master, validate="focusout", validatecommand=self.insideDiaCommand)
@@ -37,10 +43,10 @@ class UpperFrame(tkinter.Frame):
         self.numHolesEntry.grid(row=2, column=1, pady=4)
 
         tkinter.Label(self.master, text="Select Bell Note").grid(row=2, column=2, sticky=tkinter.E, pady=4)
-        self.bellNoteEntry = ttk.Combobox(self.master, state="readonly", values=self.data_store.bellNoteArray)
-        self.bellNoteEntry.config(width=17)
-        self.bellNoteEntry.grid(row=2, column=3, pady=4)
-        self.bellNoteEntry.bind("<<ComboboxSelected>>", self.bellSelectCallback)
+        self.bellNoteCombo = ttk.Combobox(self.master, state="readonly", values=self.data_store.bellNoteArray)
+        self.bellNoteCombo.config(width=17)
+        self.bellNoteCombo.grid(row=2, column=3, pady=4)
+        self.bellNoteCombo.bind("<<ComboboxSelected>>", self.bellSelectCallback)
 
         tkinter.Label(self.master, text="Embouchure Area").grid(row=3, column=0, sticky=tkinter.E, pady=4)
         self.embouchureAreaEntry = tkinter.Entry(self.master)
@@ -79,114 +85,190 @@ class UpperFrame(tkinter.Frame):
         self.setOtherButton = tkinter.Button(self.master, text="Other Parameters", width=14, command=self.setOtherCommand)
         self.setOtherButton.grid(row=5, column=3, pady=4)
 
-        self.refresh()
+        #self.refresh()
+        self.set_state() # write what's in the data_store to the GUI
+
+
+    def get_state(self):
+        '''
+        Return the state of the controls in the upper half into the data store.
+        '''
+        self.logger.debug(sys._getframe().f_code.co_name)
+        data = {} # self.data_store.get_state()
+
+        if self.displayFormatOpt.current() == 0:
+            data['disp_frac'] = False
+        else:
+            data['disp_frac'] = True
+
+        if self.measureUnitsOpt.current() == 0:
+            data['units'] = False
+        else:
+            data['units'] = True
+
+        data['title'] = self.titleEntry.get()
+        data['inside_dia'] = float(self.insideDiaEntry.get())
+        data['wall_thickness'] = float(self.wallThicknessEntry.get())
+        data['number_holes'] = int(self.numHolesEntry.get())
+        data['bell_selection'] = self.bellNoteCombo.current()
+        data['emb_area'] = float(self.embouchureAreaEntry.get())
+        data['bell_freq'] = self.data_store.note_table[data['bell_selection']]['frequency'] # float(self.bellFreqEntry.get())
+        self.data_store.set_state(data)
+
+
+    def set_state(self):
+        '''
+        Take the state from the data store and put in the GUI.
+        '''
+        self.logger.debug(sys._getframe().f_code.co_name)
+        data = self.data_store.get_state()
+
+        self.titleEntry.delete(0, tkinter.END)
+        self.titleEntry.insert(0, data['title'])
+
+        self.bellNoteCombo.current(data['bell_selection'])
+        self.measureUnitsOpt.current(int(data['units'])) # it's a bool in the data_store
+        self.displayFormatOpt.current(int(data['disp_frac'])) # it's a bool in the data_store
+
+        self.insideDiaEntry.delete(0, tkinter.END)
+        self.insideDiaEntry.insert(0, str(data['inside_dia']))
+
+        self.wallThicknessEntry.delete(0, tkinter.END)
+        self.wallThicknessEntry.insert(0, str(data['wall_thickness']))
+
+        self.numHolesEntry.delete(0, tkinter.END)
+        self.numHolesEntry.insert(0, str(data['number_holes']))
+
+        self.bellFreqEntry.config(state=tkinter.NORMAL)
+        self.bellFreqEntry.delete(0, tkinter.END)
+        self.bellFreqEntry.insert(0, str(data['bell_freq']))
+        self.bellFreqEntry.config(state=tkinter.DISABLED)
+
+        self.embouchureAreaEntry.config(state=tkinter.NORMAL)
+        self.embouchureAreaEntry.delete(0, tkinter.END)
+        self.embouchureAreaEntry.insert(0, str(data['emb_area']))
+        self.embouchureAreaEntry.config(state=tkinter.DISABLED)
+
 
     def insideDiaCommand(self, event=None):
-        print("inside diameter command")
+        self.logger.debug(sys._getframe().f_code.co_name)
         try:
             v = self.insideDiaEntry.get()
             n = float(v)
-            self.data_store.set_inside_dia(n)
-            self.refresh()
+            self.data_store.inside_dia = n
+            self.insideDiaEntry.delete(0, tkinter.END)
+            self.insideDiaEntry.insert(0, str(n))
             return True
-        except ValueError:# as e:
-            #print(repr(e))
-            messagebox.showerror("Error", message="Could not convert inside diameter to a floating point number.\nRead value was \"%s\"." % (v))
+        except ValueError:
+            messagebox.showerror("Error", "Could not convert inside diameter to a floating point number.\nRead value was \"%s\"." % (v))
             return False
         except IndexError:
-            pass
+            pass # ignore always. happens as a result of tkinter's message handling
+
 
     def wallThicknessCommand(self, event=None):
-        print("wall thickness command")
+        self.logger.debug(sys._getframe().f_code.co_name)
         try:
             v = self.wallThicknessEntry.get()
             n = float(v)
-            self.data_store.set_wall_thickness(n)
-            self.refresh()
+            self.data_store.wall_thickness = n
+            self.wallThicknessEntry.delete(0, tkinter.END)
+            self.wallThicknessEntry.insert(0, str(n))
             return True
-        except ValueError:# as e:
-            #print(repr(e))
-            messagebox.showerror("Error", message="Could not convert wall thickness to a floating point number.\nRead value was \"%s\"." % (v))
+        except ValueError:
+            messagebox.showerror("Error", "Could not convert wall thickness to a floating point number.\nRead value was \"%s\"." % (v))
             return False
         except IndexError:
             pass
 
 
     def numHolesCommand(self, event=None):
-        print("num holes command")
+        self.logger.debug(sys._getframe().f_code.co_name)
         n = 0
         try:
             v = self.numHolesEntry.get()
             n = int(v)
             if n >= 1 and n <= 12:
-                self.data_store.set_number_holes(n)
+                self.data_store.number_holes = n
+                # TODO: interface this to the lower half
                 #self.buildLower()
-                self.refresh()
                 return True
             else:
                 self.numHolesEntry.delete(0, tkinter.END)
-                self.numHolesEntry.insert(0, str(self.data_store.num_holes))
+                self.numHolesEntry.insert(0, str(self.data_store.number_holes))
                 messagebox.showerror("Error", message="Number of holes must be an integer between 1 and 12.\nRead value was \"%s\"." % (v))
                 return False
         except ValueError as e:
             print(repr(e))
             self.numHolesEntry.delete(0, tkinter.END)
-            self.numHolesEntry.insert(0, str(self.data_store.num_holes))
+            self.numHolesEntry.insert(0, str(self.data_store.number_holes))
             messagebox.showerror("Error", message="Could not convert number of holes to an integer.\nRead value was \"%s\"." % (v))
             return False
         except IndexError:
             self.numHolesEntry.delete(0, tkinter.END)
-            self.numHolesEntry.insert(0, str(self.data_store.num_holes))
+            self.numHolesEntry.insert(0, str(self.data_store.number_holes))
+
 
     def displayFormatCallback(self, event):
-        #print("display format: "+ self.displayFormatOpt.get())
+        self.logger.debug(sys._getframe().f_code.co_name)
         if self.displayFormatOpt.current() == 0:
-            self.data_store.set_disp_frac(False)
+            self.data_store.disp_frac = False
         else:
-            self.data_store.set_disp_frac(True)
-        self.refresh()
+            self.data_store.disp_frac = True
+        self.logger.debug("current format set to: %s"%(str(self.data_store.disp_frac)))
+
 
 
     def measureUnitsCallback(self, event):
-        #print("measure units: "+ self.measureUnitsOpt.get())
-        if self.measureUnitsOpt.get() == 'mm':
+        self.logger.debug(sys._getframe().f_code.co_name)
+        if self.measureUnitsOpt.current() == 0:
             self.displayFormatOpt.config(state=tkinter.DISABLED)
-            self.data_store.set_units(True)
+            self.data_store.units = True
         else:
             self.displayFormatOpt.config(state="readonly")
-            self.data_store.set_units(False)
-        self.refresh()
+            self.data_store.units = False
+        self.logger.debug("current format set to: %s"%(str(self.data_store.units)))
+        
+
 
     def bellSelectCallback(self, event):
-        #print("bellnote: %s (%d)"%(str(self.bellNoteEntry.get()), self.bellNoteEntry.current()))
-        self.data_store.set_bell_selection(self.bellNoteEntry.current())
-        self.data_store.update()
-        self.refresh()
+        self.logger.debug(sys._getframe().f_code.co_name)
+        self.data_store.bell_selection = self.bellNoteCombo.current()
+        self.logger.debug("current bell selection set to: %d"%(self.data_store.bell_selection))
+
 
     def printButtonCommand(self):
-        print("print button pressed")
+        self.logger.debug(sys._getframe().f_code.co_name)
         self.printButton.focus_set()
 
+
     def refreshButtonCommand(self):
-        print("refresh button pressed")
+        self.logger.debug(sys._getframe().f_code.co_name)
         self.refreshButton.focus_set()
-        self.refresh()
+        self.get_state()
+        # TODO: Refresh the bottom, too
+
 
     def setEmbouchureCommand(self):
-        print("set embouchure parameters button pressed")
+        self.logger.debug(sys._getframe().f_code.co_name)
         self.setEmbouchureButton.focus_set()
 
+
     def setOtherCommand(self):
-        print("set other parameters button pressed")
+        self.logger.debug(sys._getframe().f_code.co_name)
         self.setOtherButton.focus_set()
 
+
+
+
+
+
+    '''
     def refresh(self):
-        '''
-        Read the data from the data_store and place the data on the screen.
-        '''
+        self.logger.debug(sys._getframe().f_code.co_name)
         print("upper_frame refresh()")
-        self.lableEntry.delete(0, tkinter.END)
-        self.lableEntry.insert(0, self.data_store.get_title())
+        self.titleEntry.delete(0, tkinter.END)
+        self.titleEntry.insert(0, self.data_store.get_title())
         self.bellNoteEntry.current(self.data_store.get_bell_selection())
 
         self.measureUnitsOpt.current(self.data_store.get_units())
@@ -209,9 +291,6 @@ class UpperFrame(tkinter.Frame):
         self.bellFreqEntry.config(state=tkinter.DISABLED)
 
     def store(self):
-        '''
-        Read all of the data from the screen and place it in the data_store.
-        '''
         print("upper_frame store()")
         if self.measureUnitsOpt.current() == 0:
             self.data_store.set_units(False)
@@ -222,3 +301,4 @@ class UpperFrame(tkinter.Frame):
         self.data_store.set_number_holes(int(self.numHolesEntry.get()))
         self.data_store.set_emb_area(float(self.embouchureAreaEntry.get()))
         self.data_store.set_bell_selection(int(self.bellNoteEntry.current()))
+    '''
