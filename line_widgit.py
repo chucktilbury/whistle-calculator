@@ -12,7 +12,7 @@ class LineWidgit(tkinter.Frame):
     itself.
     '''
 
-    def __init__(self,
+    def __init__(self, config, 
                     parent,
                     data_store,
                     lineno,
@@ -27,7 +27,7 @@ class LineWidgit(tkinter.Frame):
                     fracs=True):
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
-
+        self.config = config
         tkinter.Frame.__init__(self, parent)
 
         self.data_store = data_store
@@ -52,7 +52,7 @@ class LineWidgit(tkinter.Frame):
         self.freq_ctl = tkinter.Label(self, textvariable=self.freq_ctl_txt, width=12)
         self.freq_ctl.grid(row=lineno+1, column=3)
 
-        self.hole_ctl = HoleSizeWidgit(self)
+        self.hole_ctl = HoleSizeWidgit(self, config)
         self.hole_ctl.config(padx=25)
         self.hole_ctl.grid(row=lineno+1, column=4)
         # TODO: 
@@ -61,14 +61,10 @@ class LineWidgit(tkinter.Frame):
         data = self.hole_ctl.get_state() # get a copy of the state
         data['mm_in'] = False
         data['frac'] = True
-        data['inch_value'] = 11/32
-        data['inch_inc'] = 1/64
-        data['inch_max'] = 1/2
-        data['inch_min'] = 3/32
-        data['mm_value'] = 8.5
-        data['mm_inc'] = 0.5
-        data['mm_max'] = 12.5
-        data['mm_min'] = 2.5
+        data['value'] = 11/32
+        #data['inc'] = 1/64
+        #data['max'] = 1/2
+        #data['min'] = 3/32
         self.hole_ctl.set_state(data)
 
         self.locat_ctl_txt = tkinter.StringVar()
@@ -123,6 +119,14 @@ class LineWidgit(tkinter.Frame):
     def print_state(self):
         self.logger.debug(sys._getframe().f_code.co_name)
         self.logger.msg(str(self.get_state()))
+
+    def convert_units(self, units):
+        '''
+        Convert from one inch or metric units to the other
+        '''
+        self.logger.debug(sys._getframe().f_code.co_name)
+        self.hole_ctl.change_units(units)
+        # TODO: change the other measurements into the new units.
 
     """
     def get_data(self):

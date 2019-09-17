@@ -7,11 +7,13 @@ class LowerFrame(tkinter.Frame):
     '''
     This class manages the lower from of the display.
     '''
-    def __init__(self, master, data_store):
-        self.master = master
-        self.data_store = data_store
+    def __init__(self, config, master, data_store):
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
+
+        self.config = config
+        self.master = master
+        self.data_store = data_store
         self.line_data = []
 
     def create_frame(self):
@@ -30,7 +32,7 @@ class LowerFrame(tkinter.Frame):
             index += self.data_store.intervals[n]
 
             # constructed with the minimum data to do a calculation.
-            lw = LineWidgit(self.master, self.data_store, n,
+            lw = LineWidgit(self.config, self.master, self.data_store, n,
                             inter=self.data_store.intervals[n],
                             freq=self.data_store.note_table[index]["frequency"],
                             note=self.data_store.note_table[index]["note"])
@@ -61,6 +63,11 @@ class LowerFrame(tkinter.Frame):
         self.logger.debug(sys._getframe().f_code.co_name)
         for n in range(self.data_store.number_holes):
             self.data_store.get_line(n).set_state()
+
+    def change_units(self, units):
+        for n in range(self.data_store.number_holes):
+            self.data_store.get_line(n).change_units(units)
+        
 
     """
     def refresh(self):

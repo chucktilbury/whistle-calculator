@@ -8,8 +8,8 @@ from logger import Logger
 if __name__ == "__main__":
 
     try:
-        logger = Logger("whistle calc main")
-        logger.debug("starting")
+        logger = Logger(__name__, Logger.DEBUG)
+        logger.debug(sys._getframe().f_code.co_name)
         
         top = tkinter.Tk()
         app = MainFrame(top)

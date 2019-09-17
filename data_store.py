@@ -16,11 +16,13 @@ class DataStore:
     #  1. Read the default state from a configuration file.
     #  2. Add methods to save and restore the default state.
     #  3. Add methods to save and restore the current state as a "saved file".
-    def __init__(self):
+    def __init__(self, config):
 
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
         
+        self.config = config
+
         self.disp_frac = True   # True if the holes are displayed in fractions
         self.units = False      # True if the units are mm and false if it's inch
         self.title = "Default Whistle"
@@ -180,7 +182,8 @@ class DataStore:
         self.bell_note_select = data['bell_selection']
         self.embouchure_area = data['emb_area']
         self.bell_freq = data['bell_freq']
-        self.line_store = data['line_store']
+        if 'line_store' in data:
+            self.line_store = data['line_store']
 
     # get and set the line data structure
     def get_line(self, index):
@@ -244,6 +247,15 @@ class DataStore:
                 raise AppFatalError("attempt to validate an unexpected type %s as type %s."%(str(type(var)), str(t)), "validate_type")
         else:
             return var
+
+    def print_data(self):
+        data = self.get_state()
+        print("line store")
+        for l in data['line_store']:
+            print(l.get_state())
+        del data['line_store']
+        print("upper store")
+        print(data)
 
     '''
     # individual getters

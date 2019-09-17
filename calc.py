@@ -8,10 +8,11 @@ class Calculator:
     # TODO:
     #   1. Add formulas 
     #   2. Connect the formulas to the data store
-    def __init__(self, data):
+    def __init__(self, config, data):
         # constant data
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
+        self.config = config
         self.data = data
 
 

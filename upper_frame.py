@@ -8,11 +8,12 @@ class UpperFrame(tkinter.Frame):
     '''
     This class manages the upper frame of the display.
     '''
-    def __init__(self, master, data_store):
-        self.master = master
-        self.data_store = data_store
+    def __init__(self, config, master, data_store):
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
+        self.master = master
+        self.data_store = data_store
+        self.config = config
 
 
     def create_frame(self):
@@ -223,10 +224,11 @@ class UpperFrame(tkinter.Frame):
         self.logger.debug(sys._getframe().f_code.co_name)
         if self.measureUnitsOpt.current() == 0:
             self.displayFormatOpt.config(state=tkinter.DISABLED)
-            self.data_store.units = True
+            self.data_store.units = False
         else:
             self.displayFormatOpt.config(state="readonly")
-            self.data_store.units = False
+            self.data_store.units = True
+        #self.data_store.set_state()
         self.logger.debug("current format set to: %s"%(str(self.data_store.units)))
         
 
@@ -257,10 +259,6 @@ class UpperFrame(tkinter.Frame):
     def setOtherCommand(self):
         self.logger.debug(sys._getframe().f_code.co_name)
         self.setOtherButton.focus_set()
-
-
-
-
 
 
     '''

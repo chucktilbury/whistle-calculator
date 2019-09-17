@@ -7,14 +7,15 @@ from exception import AppError, AppFatalError
 
 class HoleSizeWidgit(tkinter.Frame):
 
-    def __init__(self, parent, default=""):
+    def __init__(self, config, parent, default=""):
         '''
         This is a specialized widget to track the hole diameter. It displays 
         the value according to the state. It has up and down buttons used to
         increment or decrement the value. 
         '''
-        self.logger = Logger("HoleSizeWidgit", Logger.DEBUG)
-        self.logger.debug("enter constructor")
+        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
+        self.logger.debug(sys._getframe().f_code.co_name)
+        self.config = config
 
         tkinter.Frame.__init__(self, parent)
 
@@ -32,14 +33,11 @@ class HoleSizeWidgit(tkinter.Frame):
                 0xff, 0x01, 0xfe, 0x00, 0x7c, 0x00, 0x38, 0x00, 0x10, 0x00 };
         """
 
-        self.inch_inc = 0.0
-        self.mm_inc = 0.0
-        self.inch_max = 0.0
-        self.inch_min = 0.0
-        self.mm_max = 0.0
-        self.mm_min = 0.0
-        self.inch_value = 0.0
-        self.mm_value = 0.0
+        # TODO: Put these constants into a configuration file.
+        self.inc = 1/64
+        self.max = 1/2
+        self.min = 3/32
+        self.value = 11/32
         self.fract = True # display as fractions if true
         self.mm_in = False # calculate as mm if true
 
@@ -57,21 +55,27 @@ class HoleSizeWidgit(tkinter.Frame):
         self.b2 = tkinter.Button(self, image=self.bitmap_down, command=self.decr_command)
         self.b2.grid(row=1, column=2)
         self.b2.config(width=9, height=5)
+        
         self.logger.debug("constructor return")
 
     def get_state(self):
         '''
         Return the current state of the hole.
         '''
+        self.logger.debug(sys._getframe().f_code.co_name)
+        try:
+            if self.fract:
+                self.value = self.fractof(self.entry.get())
+            else:
+                self.value = float(self.entry.get())
+        except ValueError as e:
+            raise AppError('get_state', 'Cannot convert hole to float: %s'%(self.entry.get()), e)
+
         return {
-            'inch_inc': self.inch_inc,
-            'mm_inc': self.mm_inc,
-            'inch_max': self.inch_max,
-            'inch_min': self.inch_min,
-            'mm_max': self.mm_max,
-            'mm_min': self.mm_min,
-            'inch_value': self.inch_value,
-            'mm_value': self.mm_value,
+            'inc': self.inc,
+            'max': self.max,
+            'min': self.min,
+            'value': self.value,
             'fract': self.fract,
             'mm_in': self.mm_in
         }
@@ -80,65 +84,63 @@ class HoleSizeWidgit(tkinter.Frame):
         '''
         Set the current state of the hole.
         '''
+        self.logger.debug(sys._getframe().f_code.co_name)
         try:
-            self.inch_inc = data['inch_inc']
-            self.mm_inc = data['mm_inc']
-            self.inch_maxval = data['inch_max']
-            self.inch_minval = data['inch_min']
-            self.mm_maxval = data['mm_max']
-            self.mm_minval = data['mm_min']
-            self.inch_value = data['inch_value']
-            self.mm_value = data['mm_value']
+            #self.inc = data['inc']
+            #self.max = data['max']
+            #self.min = data['min']
+            self.value = data['value']
             self.fract = data['fract']
-            self.mm_in = data['mm_in']
-
+            self.change_units(data['mm_in'])
             self.update_val()   # display the new state
+
         except AppFatalError as e:
             e.show()
         except Exception as e:
             raise AppFatalError(str(e), 'HoleSizeWidgit.set_state')
 
     def update_val(self):
+        self.logger.debug(sys._getframe().f_code.co_name)
         self.entry.delete(0, tkinter.END)
         if not self.mm_in:
-            self.logger.debug("updating inch value to %s"%(str(self.inch_value)))
+            self.logger.debug("updating inch value to %s"%(str(self.value)))
             if self.fract:
                 self.entry.insert(0, "%s"%(self.reduce()))
             else:
                 self.entry.insert(0, "%0.3f"%(self.value))
         else:
-            self.logger.debug("updating mm value to %s"%(str(self.mm_value)))
+            self.logger.debug("updating mm value to %s"%(str(self.value)))
             self.entry.insert(0, "%0.3f"%(self.value))
             
 
     # event handlers
     def incr_command(self):
-        self.logger.debug("increment value")
+        self.logger.debug(sys._getframe().f_code.co_name)
         if self.mm_in:
             self.logger.debug("mm")
-            self.value = self.value + self.mm_inc
-            if self.value > self.mm_max:
-                self.value = self.mm_max
+            self.value = self.value + self.inc
+            if self.value > self.max:
+                self.value = self.max
         else:
             self.logger.debug("inch")
-            self.value = self.value + self.inch_inc
-            if self.value > self.inch_max:
-                self.value = self.inch_max
+            self.value = self.value + self.inc
+            if self.value > self.max:
+                self.value = self.max
 
         self.update_val()
 
     def decr_command(self):
-        self.logger.debug("decrement value")
+        self.logger.debug(sys._getframe().f_code.co_name)
         if self.mm_in:
             self.logger.debug("mm")
-            self.value = self.value - self.mm_inc
-            if self.value < self.mm_min:
-                self.value = self.mm_min
+            self.value = self.value - self.inc
+            if self.value < self.min:
+                self.value = self.min
         else:
             self.logger.debug("inch")
-            self.value = self.value - self.inch_inc
-            if self.value < self.inch_min:
-                self.value = self.inch_min
+            self.value = self.value - self.inc
+            if self.value < self.min:
+                self.value = self.min
 
         self.update_val()
 
@@ -147,37 +149,72 @@ class HoleSizeWidgit(tkinter.Frame):
         '''
         Reduce the internal value to a fraction and return it as a string.
         '''
-        w = int(self.inch_value / (1/64))
+        self.logger.debug(sys._getframe().f_code.co_name)
+        if self.mm_in:
+            self.logger.error("cannot reduce a metric value")
+            return None
+
+        w = int(self.value / (1/64))
         f = 64
         while w % 2 == 0:
             w = w / 2
             f = f / 2
 
             if f == 0:
-                raise AppError("Cannot convert internal value (%0.3f) to a fraction."%(self.inch_value), "reduce")
+                self.logger.error("inch value = %0.3f"%(self.value))
+                raise AppError("reduce", "Cannot convert internal value (%0.3f) to a fraction."%(self.value), "reduce")
 
         # This can yield stupid values if w or f go below zero
         s = str(int(w))+"/"+str(int(f))
-        self.logger.debug("reduce: %s: %s"%(str(self.inch_value), s))
+        self.logger.debug("reduce: %s: %s"%(str(self.value), s))
         return s
 
     def fractof(self, frac):
         '''
         Convert the string given as a fraction into a float. Return the value.
         '''
+        self.logger.debug(sys._getframe().f_code.co_name)
+        self.logger.debug("convert string \"%s\""%(frac))
+        if len(frac) == 0:
+            return 0.0
+
         a = frac.split('/')
-        return float(a[0]) / float(a[1])
+        try:
+            return float(a[0]) / float(a[1])
+        except ValueError as e:
+            raise AppError("fractof", "Cannot convert value to a fraction: \"%s\""%(frac), e)
 
     def rnd(self, num, factor):
         '''
         Find the closest multiple of factor for num.
         '''
+        self.logger.debug(sys._getframe().f_code.co_name)
         a = math.ceil(num/factor)*factor
         b = math.floor(num/factor)*factor
         if abs(num - a) < abs(num - b):
             return a
         else:
             return b
+
+    def change_units(self, units):
+        self.logger.debug(sys._getframe().f_code.co_name)
+        if units != self.mm_in:
+            self.logger.debug("change units")
+            # TODO: Put these constants into a configuration file.
+            if self.mm_in: # change mm to inch
+                self.inc = 1/64
+                self.max = 1/2
+                self.min = 3/32
+                self.value = self.rnd(self.value/25.4, self.inc)
+                self.mm_in = False
+            else: # switch from inch to mm
+                self.inc = 0.5
+                self.max = 12.5
+                self.min = 2.5
+                self.value = self.rnd(self.value*25.4, self.inc)
+                self.mm_in = True
+        else:
+            self.logger.debug("do not change units")
 
     def print_state(self):
         self.logger.msg(str(self.get_state()))
