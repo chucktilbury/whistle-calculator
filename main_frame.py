@@ -15,12 +15,10 @@ class MainFrame(tkinter.Frame):
     '''
     This is the main frame that "contains" the other frames.
     '''
-    def __init__(self, config, master=None):
+    def __init__(self, master=None):
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
 
-        self.config = config 
-        
         tkinter.Frame.__init__(self, master)
         self.master = master
         self.master.protocol("WM_DELETE_WINDOW", self.close_window)
@@ -33,12 +31,12 @@ class MainFrame(tkinter.Frame):
         # set up some default values
         self.current_file_name = os.path.join(os.getcwd(), "untitled.wis")
         # TODO: data_store constructor reads default data from the configuration file.
-        self.config = Configuration()
-        self.data = DataStore(self.config)
+        self.configuration = Configuration()
+        self.data = DataStore(self.configuration)
         self.logger.debug("data store: %s"%(str(self.data)))
-        self.calc = Calculator(self.config, self.data)
-        self.upper_frame = UpperFrame(self.config, self.general_params, self.data)
-        self.lower_frame = LowerFrame(self.config, self.output_params, self.data)
+        self.calc = Calculator(self.configuration, self.data)
+        self.upper_frame = UpperFrame(self.configuration, self.general_params, self.data)
+        self.lower_frame = LowerFrame(self.configuration, self.output_params, self.data)
 
         menu = tkinter.Menu(self.master, tearoff=0)
         self.master.config(menu=menu)

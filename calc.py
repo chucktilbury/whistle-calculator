@@ -12,7 +12,7 @@ class Calculator:
         # constant data
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
-        self.config = config
+        self.configuration = config
         self.data = data
 
 

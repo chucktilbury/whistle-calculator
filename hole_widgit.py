@@ -4,6 +4,7 @@ import sys, math
 
 from logger import Logger
 from exception import AppError, AppFatalError
+import utility
 
 class HoleSizeWidgit(tkinter.Frame):
 
@@ -15,9 +16,9 @@ class HoleSizeWidgit(tkinter.Frame):
         '''
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
-        self.config = config
 
         tkinter.Frame.__init__(self, parent)
+        self.configuration = config
 
         BITMAP_UP = """
             #define up_width 9
@@ -65,7 +66,7 @@ class HoleSizeWidgit(tkinter.Frame):
         self.logger.debug(sys._getframe().f_code.co_name)
         try:
             if self.fract:
-                self.value = self.fractof(self.entry.get())
+                self.value = utility.fractof(self.entry.get())
             else:
                 self.value = float(self.entry.get())
         except ValueError as e:
@@ -105,7 +106,7 @@ class HoleSizeWidgit(tkinter.Frame):
         if not self.mm_in:
             self.logger.debug("updating inch value to %s"%(str(self.value)))
             if self.fract:
-                self.entry.insert(0, "%s"%(self.reduce()))
+                self.entry.insert(0, "%s"%(utility.reduce(self.value)))
             else:
                 self.entry.insert(0, "%0.3f"%(self.value))
         else:
@@ -144,74 +145,22 @@ class HoleSizeWidgit(tkinter.Frame):
 
         self.update_val()
 
-    # Utility methods
-    def reduce(self):
-        '''
-        Reduce the internal value to a fraction and return it as a string.
-        '''
-        self.logger.debug(sys._getframe().f_code.co_name)
-        if self.mm_in:
-            self.logger.error("cannot reduce a metric value")
-            return None
-
-        w = int(self.value / (1/64))
-        f = 64
-        while w % 2 == 0:
-            w = w / 2
-            f = f / 2
-
-            if f == 0:
-                self.logger.error("inch value = %0.3f"%(self.value))
-                raise AppError("reduce", "Cannot convert internal value (%0.3f) to a fraction."%(self.value), "reduce")
-
-        # This can yield stupid values if w or f go below zero
-        s = str(int(w))+"/"+str(int(f))
-        self.logger.debug("reduce: %s: %s"%(str(self.value), s))
-        return s
-
-    def fractof(self, frac):
-        '''
-        Convert the string given as a fraction into a float. Return the value.
-        '''
-        self.logger.debug(sys._getframe().f_code.co_name)
-        self.logger.debug("convert string \"%s\""%(frac))
-        if len(frac) == 0:
-            return 0.0
-
-        a = frac.split('/')
-        try:
-            return float(a[0]) / float(a[1])
-        except ValueError as e:
-            raise AppError("fractof", "Cannot convert value to a fraction: \"%s\""%(frac), e)
-
-    def rnd(self, num, factor):
-        '''
-        Find the closest multiple of factor for num.
-        '''
-        self.logger.debug(sys._getframe().f_code.co_name)
-        a = math.ceil(num/factor)*factor
-        b = math.floor(num/factor)*factor
-        if abs(num - a) < abs(num - b):
-            return a
-        else:
-            return b
-
     def change_units(self, units):
         self.logger.debug(sys._getframe().f_code.co_name)
         if units != self.mm_in:
             self.logger.debug("change units")
             # TODO: Put these constants into a configuration file.
             if self.mm_in: # change mm to inch
-                self.inc = 1/64
-                self.max = 1/2
-                self.min = 3/32
-                self.value = self.rnd(self.value/25.4, self.inc)
+                self.inc = self.configuration.in_inc
+                self.max = self.configuration.in_max
+                self.min = self.configuration.in_min
+                self.value = utility.rnd(self.value/25.4, self.inc)
                 self.mm_in = False
             else: # switch from inch to mm
-                self.inc = 0.5
-                self.max = 12.5
-                self.min = 2.5
-                self.value = self.rnd(self.value*25.4, self.inc)
+                self.inc = self.configuration.mm_inc
+                self.max = self.configuration.mm_max
+                self.min = self.configuration.mm_min
+                self.value = utility.rnd(self.value*25.4, self.inc)
                 self.mm_in = True
         else:
             self.logger.debug("do not change units")

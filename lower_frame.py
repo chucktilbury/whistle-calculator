@@ -11,10 +11,10 @@ class LowerFrame(tkinter.Frame):
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
 
-        self.config = config
+        self.configuration = config
         self.master = master
         self.data_store = data_store
-        self.line_data = []
+        #self.line_data = []
 
     def create_frame(self):
         self.logger.debug(sys._getframe().f_code.co_name)

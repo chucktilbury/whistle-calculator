@@ -2,6 +2,7 @@ import sys
 from tkinter import messagebox
 from logger import Logger
 from exception import AppError, AppFatalError, AppWarning
+#from configuration import Configuration
 
 class DataStore:
     '''
@@ -21,18 +22,7 @@ class DataStore:
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
         
-        self.config = config
-
-        self.disp_frac = True   # True if the holes are displayed in fractions
-        self.units = False      # True if the units are mm and false if it's inch
-        self.title = "Default Whistle"
-        self.inside_dia = 0.5
-        self.wall_thickness = 0.15
-        self.number_holes = 6
-        self.bell_note_select = 62
-        self.embouchure_area = 1.2
-        self.bell_freq = 587.33
-        self.intervals = [2, 2, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2]
+        self.configuration = config
 
         self.note_table = [
             {"note":"C0",      "frequency":16.35},   # index = 0
@@ -144,6 +134,18 @@ class DataStore:
             {"note":"A#8/Bb8", "frequency":7458.62}, # index = 106
             {"note":"B8",      "frequency":7902.13}  # index = 107
         ]
+
+        # default values
+        self.disp_frac = self.configuration.format   # True if the holes are displayed in fractions
+        self.units = self.configuration.units      # True if the units are mm and false if it's inch
+        self.title = self.configuration.title
+        self.inside_dia = self.configuration.inside_dia
+        self.wall_thickness = self.configuration.wall_thick
+        self.number_holes = self.configuration.num_holes
+        self.bell_note_select = self.configuration.bell_select
+        self.embouchure_area = self.configuration.emb_area
+        self.bell_freq = self.note_table[self.bell_note_select]['frequency']
+        self.intervals = [2, 2, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2]
 
         # create an array of dictionaries to hold the values for each line
         #self.line_store = [{'index':k, 'name':'', 'interval':0, 'note':'', 'freq':0.0, 'hole':0.25, 'location':0.0, 'diff':0.0, 'cutoff':0.0} for k in range(12)]

@@ -13,7 +13,7 @@ class UpperFrame(tkinter.Frame):
         self.logger.debug(sys._getframe().f_code.co_name)
         self.master = master
         self.data_store = data_store
-        self.config = config
+        self.configuration = config
 
 
     def create_frame(self):

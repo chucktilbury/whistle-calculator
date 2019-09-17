@@ -27,7 +27,7 @@ class LineWidgit(tkinter.Frame):
                     fracs=True):
         self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
-        self.config = config
+        self.configuration = config
         tkinter.Frame.__init__(self, parent)
 
         self.data_store = data_store
@@ -52,7 +52,7 @@ class LineWidgit(tkinter.Frame):
         self.freq_ctl = tkinter.Label(self, textvariable=self.freq_ctl_txt, width=12)
         self.freq_ctl.grid(row=lineno+1, column=3)
 
-        self.hole_ctl = HoleSizeWidgit(self, config)
+        self.hole_ctl = HoleSizeWidgit(config, self)
         self.hole_ctl.config(padx=25)
         self.hole_ctl.grid(row=lineno+1, column=4)
         # TODO: 
