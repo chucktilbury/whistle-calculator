@@ -1,6 +1,9 @@
 import math, sys
 
-from logger import Logger
+from data_store import DataStore
+#from configuration import Configuration
+from utility import Logger, debugger
+
 # Speed of Sound = 345 m/s = 1130 ft/s = 770 miles/hr
 
 class Calculator:
@@ -8,16 +11,18 @@ class Calculator:
     # TODO:
     #   1. Add formulas 
     #   2. Connect the formulas to the data store
-    def __init__(self, config, data):
+    def __init__(self):
         # constant data
-        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
-        self.logger.debug(sys._getframe().f_code.co_name)
-        self.configuration = config
-        self.data = data
+        self.logger = Logger(self, Logger.DEBUG)
+        self.logger.debug("enter constructor")
+        #self.configuration = Configuration.get_instance()
+        self.data = DataStore.get_instance()
+        self.logger.debug("end constructor")
 
 
+    @debugger
     def update(self):
         '''
         Make all calculations based on the current state.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
+        pass

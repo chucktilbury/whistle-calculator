@@ -1,8 +1,9 @@
-import sys
+import sys, pickle, zlib
 from tkinter import messagebox
-from logger import Logger
+from utility import Logger, debugger
 from exception import AppError, AppFatalError, AppWarning
 #from configuration import Configuration
+
 
 class DataStore:
     '''
@@ -11,18 +12,36 @@ class DataStore:
     it pertains to what the calculator needs to function. This object can
     be passed around providing a consistent way to access the data it
     contains.
+
+    This is a singleton class. To get the instance call get_instance()
     '''
+    __instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        This static method is used to get the singleton object for this class.
+        '''
+        if DataStore.__instance == None:
+            DataStore()
+        return DataStore.__instance
 
     # TODO: 
     #  1. Read the default state from a configuration file.
     #  2. Add methods to save and restore the default state.
     #  3. Add methods to save and restore the current state as a "saved file".
-    def __init__(self, config):
+    #  See the configuration class
+    def __init__(self):
 
-        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
-        self.logger.debug(sys._getframe().f_code.co_name)
-        
-        self.configuration = config
+        # gate the accress to __init__()
+        if DataStore.__instance != None:
+            raise Exception("DataStore class is a singleton. Use get_instance() instead.")
+        else:
+            DataStore.__instance = self
+
+        # Continue with init exactly once.
+        self.logger = Logger(self, Logger.DEBUG)
+        self.logger.debug("enter constructor")
 
         self.note_table = [
             {"note":"C0",      "frequency":16.35},   # index = 0
@@ -136,14 +155,8 @@ class DataStore:
         ]
 
         # default values
-        self.disp_frac = self.configuration.format   # True if the holes are displayed in fractions
-        self.units = self.configuration.units      # True if the units are mm and false if it's inch
-        self.title = self.configuration.title
-        self.inside_dia = self.configuration.inside_dia
-        self.wall_thickness = self.configuration.wall_thick
-        self.number_holes = self.configuration.num_holes
-        self.bell_note_select = self.configuration.bell_select
-        self.embouchure_area = self.configuration.emb_area
+        self.load()
+
         self.bell_freq = self.note_table[self.bell_note_select]['frequency']
         self.intervals = [2, 2, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2]
 
@@ -154,10 +167,11 @@ class DataStore:
         for num in range(len(self.note_table)):
                 self.bellNoteArray.append("%s (%s Hz)"%(self.note_table[num]["note"], str(self.note_table[num]["frequency"])))
 
+        self.logger.debug("leave constructor")
 
     # get by data structure
+    @debugger
     def get_state(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         return {
             'disp_frac':self.disp_frac,
             'units':self.units,
@@ -172,8 +186,8 @@ class DataStore:
         }
 
     # set by data structure
+    @debugger
     def set_state(self, data):
-        self.logger.debug(sys._getframe().f_code.co_name)
 
         self.disp_frac = data['disp_frac']
         self.units = data['units']
@@ -188,18 +202,20 @@ class DataStore:
             self.line_store = data['line_store']
 
     # get and set the line data structure
+    @debugger
     def get_line(self, index):
         return self.line_store[index]
 
+    @debugger
     def set_line(self, index, line):
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.line_store.insert(index, line)
 
+    @debugger
     def del_line(self, index):
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.logger.debug("destroy line number %d"%(index))
         return self.line_store.pop(index)
 
+    @debugger
     def get_line_store(self):
         '''
         Simply return the line store for direct manipulation.
@@ -207,13 +223,13 @@ class DataStore:
         return self.line_store
 
     # Utilities
+    @debugger
     def validate_type(self, var, t):
         '''
         Validate the type of the srguement. If it cannot be converted, then the program cannot continue.
         This is considered a developer error. The exceptions here only happen if the input validation 
         from the GUI has failed.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         if type(var) != t:
             if t is float:
                 try:
@@ -250,6 +266,31 @@ class DataStore:
         else:
             return var
 
+    @debugger
+    def load(self, fname=None):
+        self.disp_frac = True   # True if the holes are displayed in fractions
+        self.units = False      # True if the units are mm and false if it's inch
+        self.title = "Default Whistle"
+        self.inside_dia = 0.5
+        self.wall_thickness = 0.15
+        self.number_holes = 6
+        self.bell_note_select = 62
+        self.embouchure_area = 1.2
+
+        self.mm_in = False
+        self.in_inc = 1/64
+        self.in_max = 1/2
+        self.in_min = 3/32
+        self.in_value = 11/32
+        self.mm_inc = 0.5
+        self.mm_max = 12.5
+        self.mm_min = 2.5
+        self.mm_value = 9.0
+
+    @debugger
+    def save(self, fname=None):
+        pass
+
     def print_data(self):
         data = self.get_state()
         print("line store")
@@ -259,6 +300,79 @@ class DataStore:
         print("upper store")
         print(data)
 
+class Configuration:
+    '''
+    Deal with loading and saving the state of the calculator, including the
+    default values upon load.
+
+    This is a singleton class. Use get_instance() instead of the constructor.
+
+    TODO: Save current state as the state for the next time the app is
+          started.
+    '''
+
+    __instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        This static method is used to get the singleton object for this class.
+        '''
+        if Configuration.__instance == None:
+            Configuration()
+        return Configuration.__instance
+
+    def __init__(self):
+
+        # gate the accress to __init__()
+        if Configuration.__instance != None:
+            raise Exception("Configuration is a singleton class. Use get_instance() instead of the constructor.")
+        else:
+            Configuration.__instance = self
+
+        self.logger = Logger(self, Logger.DEBUG)
+        self.logger.debug("enter constructor")
+        self.data_store = DataStore.get_instance()
+
+        # load the defaults
+        self.load()
+
+        # line defaults
+        self.mm_in = False
+        self.in_inc = 1/64
+        self.in_max = 1/2
+        self.in_min = 3/32
+        self.in_value = 11/32
+        self.mm_inc = 0.5
+        self.mm_max = 12.5
+        self.mm_min = 2.5
+        self.mm_value = 9.0
+
+        # upper defaults
+        self.title = "Default Whistle"
+        self.inside_dia = 0.5
+        self.num_holes = 6
+        self.emb_area = 1.2
+        self.units = False
+        self.wall_thick = 0.15
+        self.bell_select = 62
+        self.format = True
+
+        self.file_name = 'untitled.wis' # default file name
+
+        self.logger.debug("leave constructor")
+
+    @debugger
+    def load(self, fname=None):
+        pass
+
+    @debugger
+    def save(self, fname=None):
+        pass
+
+    @debugger
+    def get(self):
+        pass
     '''
     # individual getters
     def get_disp_frac(self):

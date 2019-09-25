@@ -1,23 +1,25 @@
 import tkinter
 import sys
+
+from data_store import DataStore
+#from configuration import Configuration
 from line_widgit import LineWidgit
-from logger import Logger
+from utility import Logger, debugger
 
 class LowerFrame(tkinter.Frame):
     '''
     This class manages the lower from of the display.
     '''
-    def __init__(self, config, master, data_store):
-        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
-        self.logger.debug(sys._getframe().f_code.co_name)
+    def __init__(self, master):
+        self.logger = Logger(self, Logger.DEBUG)
+        self.logger.debug("constructor")
 
-        self.configuration = config
+        self.data_store = DataStore.get_instance()
         self.master = master
-        self.data_store = data_store
         #self.line_data = []
 
+    @debugger
     def create_frame(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         tkinter.Label(self.master, width=12, text="Hole").grid(row=0, column=0, sticky=tkinter.W)
         tkinter.Label(self.master, width=5, text="Interval").grid(row=0, column=1, sticky=tkinter.W)
         tkinter.Label(self.master, width=10, text="Note").grid(row=0, column=2, sticky=tkinter.W)
@@ -32,7 +34,7 @@ class LowerFrame(tkinter.Frame):
             index += self.data_store.intervals[n]
 
             # constructed with the minimum data to do a calculation.
-            lw = LineWidgit(self.config, self.master, self.data_store, n,
+            lw = LineWidgit(self.master, n,
                             inter=self.data_store.intervals[n],
                             freq=self.data_store.note_table[index]["frequency"],
                             note=self.data_store.note_table[index]["note"])
@@ -40,30 +42,31 @@ class LowerFrame(tkinter.Frame):
             self.data_store.set_line(n, lw)
             #self.data_store.line_data.append(lw)
 
+    @debugger
     def destroy_frame(self):
         #del self.data_store.line_store
         #self.data_store.line_store = []
-        self.logger.debug(sys._getframe().f_code.co_name)
         for s in self.master.grid_slaves():
             s.destroy()
         for n in range(self.data_store.number_holes):
             self.data_store.del_line(n)
 
+    @debugger
     def get_state(self):
         '''
         Read the state from the GUI and put it in the data_store.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         #return self.data_store.
 
+    @debugger
     def set_state(self, data):
         '''
         Get the state from the data_store and place it into the GUI.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         for n in range(self.data_store.number_holes):
             self.data_store.get_line(n).set_state()
 
+    @debugger
     def change_units(self, units):
         for n in range(self.data_store.number_holes):
             self.data_store.get_line(n).change_units(units)

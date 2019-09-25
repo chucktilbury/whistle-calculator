@@ -1,5 +1,6 @@
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog
 import tkinter
 import sys, os
 
@@ -7,16 +8,17 @@ from data_store import DataStore
 from calc import Calculator
 from lower_frame import LowerFrame
 from upper_frame import UpperFrame
-from logger import Logger
+from utility import Logger, debugger
 from exception import AppFatalError
-from configuration import Configuration
+#from configuration import Configuration
+import utility 
 
 class MainFrame(tkinter.Frame):
     '''
     This is the main frame that "contains" the other frames.
     '''
     def __init__(self, master=None):
-        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
+        self.logger = Logger(self, Logger.DEBUG)
         self.logger.debug(sys._getframe().f_code.co_name)
 
         tkinter.Frame.__init__(self, master)
@@ -30,13 +32,13 @@ class MainFrame(tkinter.Frame):
 
         # set up some default values
         self.current_file_name = os.path.join(os.getcwd(), "untitled.wis")
-        # TODO: data_store constructor reads default data from the configuration file.
-        self.configuration = Configuration()
-        self.data = DataStore(self.configuration)
+        
+        self.data = DataStore.get_instance()
         self.logger.debug("data store: %s"%(str(self.data)))
-        self.calc = Calculator(self.configuration, self.data)
-        self.upper_frame = UpperFrame(self.configuration, self.general_params, self.data)
-        self.lower_frame = LowerFrame(self.configuration, self.output_params, self.data)
+
+        self.calc = Calculator()
+        self.upper_frame = UpperFrame(self.general_params)
+        self.lower_frame = LowerFrame(self.output_params)
 
         menu = tkinter.Menu(self.master, tearoff=0)
         self.master.config(menu=menu)
@@ -61,37 +63,44 @@ class MainFrame(tkinter.Frame):
         self.upper_frame.create_frame()
         self.lower_frame.create_frame()
 
+    @debugger
     def close_window(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         if messagebox.askyesno("Quit", "Are you sure you want to quit?"):
+            self.logger.debug('quit')
             self.master.destroy()
+        else:
+            self.logger.debug('ignore')
 
+    @debugger
     def loadCommand(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
-        f = tkinter.filedialog.askopenfilename(initialfile=self.current_file_name, filetypes=(("Whistle Files","*.wis"), ("all files", "*.*")))
-        print("loading file = " + f)
+        f = filedialog.askopenfilename(initialfile=self.current_file_name, filetypes=(("Whistle Files","*.wis"), ("all files", "*.*")))
+        if f != '':
+            self.logger.debug("loading file: %s"%(f))
+            # load the file here
+        else:
+            self.logger.debug("cancel")
 
+    @debugger
     def saveCommand(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
-        d = tkinter.filedialog.askdirectory(initialdir=os.getcwd(), mustexist=True)
+        d = filedialog.askdirectory(initialdir=os.getcwd(), mustexist=True)
         p = os.path.join(d, self.current_file_name)
         print("saving file = " + p )
         #f = open(p, 'w')
         #f.close()
 
+    @debugger
     def saveasCommand(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
-        f = tkinter.filedialog.asksaveasfilename(initialfile=self.current_file_name, filetypes=(("Whistle Files","*.wis"), ("all files", "*.*")))
+        f = filedialog.asksaveasfilename(initialfile=self.current_file_name, filetypes=(("Whistle Files","*.wis"), ("all files", "*.*")))
         print("file save as = " + f)
 
+    @debugger
     def helpCommand(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.data.print_data()
         #print("display format: "+ self.displayFormatOpt.get())
         #print("measure units: "+ self.measureUnitsOpt.get())
         #print("bellnote: %s (%d)"%(str(self.bellNoteEntry.get()), self.bellNoteEntry.current()))
 
+    @debugger
     def aboutCommand(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         messagebox.showinfo(
             "About", "Tilbury Woodwinds Company\nWhistle Calculator\nChuck Tilbury (c) 2019")

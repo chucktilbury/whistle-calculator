@@ -2,23 +2,25 @@ from tkinter import messagebox
 import tkinter
 import sys, math
 
-from logger import Logger
+from data_store import DataStore
+#from configuration import Configuration
+from utility import Logger, debugger
 from exception import AppError, AppFatalError
 import utility
 
 class HoleSizeWidgit(tkinter.Frame):
 
-    def __init__(self, config, parent, default=""):
+    def __init__(self, parent, default=""):
         '''
         This is a specialized widget to track the hole diameter. It displays 
         the value according to the state. It has up and down buttons used to
         increment or decrement the value. 
         '''
-        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
-        self.logger.debug(sys._getframe().f_code.co_name)
+        self.logger = Logger(self, Logger.DEBUG)
+        self.logger.debug("constructor")
 
         tkinter.Frame.__init__(self, parent)
-        self.configuration = config
+        self.data_store = DataStore.get_instance()
 
         BITMAP_UP = """
             #define up_width 9
@@ -35,6 +37,8 @@ class HoleSizeWidgit(tkinter.Frame):
         """
 
         # TODO: Put these constants into a configuration file.
+        #       Need to resolve the mm/inch question for configurations.
+        #       Track it separately? Or just change the values?
         self.inc = 1/64
         self.max = 1/2
         self.min = 3/32
@@ -59,11 +63,11 @@ class HoleSizeWidgit(tkinter.Frame):
         
         self.logger.debug("constructor return")
 
+    @debugger
     def get_state(self):
         '''
         Return the current state of the hole.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         try:
             if self.fract:
                 self.value = utility.fractof(self.entry.get())
@@ -81,11 +85,11 @@ class HoleSizeWidgit(tkinter.Frame):
             'mm_in': self.mm_in
         }
 
+    @debugger
     def set_state(self, data):
         '''
         Set the current state of the hole.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         try:
             #self.inc = data['inc']
             #self.max = data['max']
@@ -100,8 +104,8 @@ class HoleSizeWidgit(tkinter.Frame):
         except Exception as e:
             raise AppFatalError(str(e), 'HoleSizeWidgit.set_state')
 
+    @debugger
     def update_val(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.entry.delete(0, tkinter.END)
         if not self.mm_in:
             self.logger.debug("updating inch value to %s"%(str(self.value)))
@@ -115,8 +119,8 @@ class HoleSizeWidgit(tkinter.Frame):
             
 
     # event handlers
+    @debugger
     def incr_command(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         if self.mm_in:
             self.logger.debug("mm")
             self.value = self.value + self.inc
@@ -130,8 +134,8 @@ class HoleSizeWidgit(tkinter.Frame):
 
         self.update_val()
 
+    @debugger
     def decr_command(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         if self.mm_in:
             self.logger.debug("mm")
             self.value = self.value - self.inc
@@ -145,21 +149,20 @@ class HoleSizeWidgit(tkinter.Frame):
 
         self.update_val()
 
+    @debugger
     def change_units(self, units):
-        self.logger.debug(sys._getframe().f_code.co_name)
         if units != self.mm_in:
             self.logger.debug("change units")
-            # TODO: Put these constants into a configuration file.
             if self.mm_in: # change mm to inch
-                self.inc = self.configuration.in_inc
-                self.max = self.configuration.in_max
-                self.min = self.configuration.in_min
+                self.inc = self.data_store.in_inc
+                self.max = self.data_store.in_max
+                self.min = self.data_store.in_min
                 self.value = utility.rnd(self.value/25.4, self.inc)
                 self.mm_in = False
             else: # switch from inch to mm
-                self.inc = self.configuration.mm_inc
-                self.max = self.configuration.mm_max
-                self.min = self.configuration.mm_min
+                self.inc = self.data_store.mm_inc
+                self.max = self.data_store.mm_max
+                self.min = self.data_store.mm_min
                 self.value = utility.rnd(self.value*25.4, self.inc)
                 self.mm_in = True
         else:

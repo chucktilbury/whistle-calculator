@@ -2,8 +2,10 @@ from tkinter import messagebox
 import tkinter
 import sys
 
+from data_store import DataStore
+#from configuration import Configuration
 from hole_widgit import HoleSizeWidgit
-from logger import Logger
+from utility import Logger, debugger
 
 class LineWidgit(tkinter.Frame):
     '''
@@ -12,9 +14,8 @@ class LineWidgit(tkinter.Frame):
     itself.
     '''
 
-    def __init__(self, config, 
+    def __init__(self, 
                     parent,
-                    data_store,
                     lineno,
                     inter=0,
                     note="",
@@ -25,12 +26,12 @@ class LineWidgit(tkinter.Frame):
                     diff=0.0,
                     units=False,
                     fracs=True):
-        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
-        self.logger.debug(sys._getframe().f_code.co_name)
-        self.configuration = config
+        self.logger = Logger(self, Logger.DEBUG)
+        self.logger.debug("constructor")
         tkinter.Frame.__init__(self, parent)
 
-        self.data_store = data_store
+        #self.configuration = Configuration.get_instance()
+        self.data_store = DataStore.get_instance()
         self.index = lineno
 
         self.name = "Hole %d" % (lineno+1)
@@ -52,9 +53,10 @@ class LineWidgit(tkinter.Frame):
         self.freq_ctl = tkinter.Label(self, textvariable=self.freq_ctl_txt, width=12)
         self.freq_ctl.grid(row=lineno+1, column=3)
 
-        self.hole_ctl = HoleSizeWidgit(config, self)
+        self.hole_ctl = HoleSizeWidgit(self)
         self.hole_ctl.config(padx=25)
         self.hole_ctl.grid(row=lineno+1, column=4)
+
         # TODO: 
         #   1, Move these default values to the data-store and allow them to be configured
         #      via a configuration file.
@@ -84,11 +86,11 @@ class LineWidgit(tkinter.Frame):
 
         #self.get_data()
 
+    @debugger
     def set_state(self, data):
         '''
         Place the data in the data_store into the GUI.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.inter_ctl.delete(0, tkinter.END)
         self.inter_ctl.insert(0, str(data['interval']))
         self.note_ctl_txt.set(str(data['note'])) # Label
@@ -101,11 +103,11 @@ class LineWidgit(tkinter.Frame):
         #self.hole_ctl.set_startval(data['hole']) # HoleWidgit
         self.hole_ctl.set_state(data['hole']) # HoleWidgit
 
+    @debugger
     def get_state(self):
         '''
         Get the data out of the display and place it in the data_store.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         return {
             'interval':int(self.inter_ctl.get()),
             'note':self.note_ctl_txt.get(), # str
@@ -116,15 +118,15 @@ class LineWidgit(tkinter.Frame):
             'cutoff':float(self.cutoff_ctl_txt.get())
         }
 
+    @debugger
     def print_state(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.logger.msg(str(self.get_state()))
 
+    @debugger
     def convert_units(self, units):
         '''
         Convert from one inch or metric units to the other
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.hole_ctl.change_units(units)
         # TODO: change the other measurements into the new units.
 

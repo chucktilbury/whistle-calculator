@@ -2,23 +2,24 @@ import tkinter
 import sys
 from tkinter import messagebox
 from tkinter import ttk
-from logger import Logger
+
+from data_store import DataStore
+#from configuration import Configuration
+from utility import Logger, debugger, raise_event
 
 class UpperFrame(tkinter.Frame):
     '''
     This class manages the upper frame of the display.
     '''
-    def __init__(self, config, master, data_store):
-        self.logger = Logger(self.__class__.__name__, Logger.DEBUG)
-        self.logger.debug(sys._getframe().f_code.co_name)
+    def __init__(self, master):
+        self.logger = Logger(self, Logger.DEBUG)
+        self.logger.debug("constructor")
         self.master = master
-        self.data_store = data_store
-        self.configuration = config
+        self.data_store = DataStore.get_instance()
 
-
+    @debugger
     def create_frame(self):
         # build the screen
-        self.logger.debug(sys._getframe().f_code.co_name)
 
         # Fill in the upper frame
         tkinter.Label(self.master, text="Title").grid(row=0, column=0, sticky=tkinter.E)
@@ -89,12 +90,11 @@ class UpperFrame(tkinter.Frame):
         #self.refresh()
         self.set_state() # write what's in the data_store to the GUI
 
-
+    @debugger
     def get_state(self):
         '''
         Return the state of the controls in the upper half into the data store.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         data = {} # self.data_store.get_state()
 
         if self.displayFormatOpt.current() == 0:
@@ -117,11 +117,11 @@ class UpperFrame(tkinter.Frame):
         self.data_store.set_state(data)
 
 
+    @debugger
     def set_state(self):
         '''
         Take the state from the data store and put in the GUI.
         '''
-        self.logger.debug(sys._getframe().f_code.co_name)
         data = self.data_store.get_state()
 
         self.titleEntry.delete(0, tkinter.END)
@@ -151,14 +151,19 @@ class UpperFrame(tkinter.Frame):
         self.embouchureAreaEntry.config(state=tkinter.DISABLED)
 
 
+    @debugger
     def insideDiaCommand(self, event=None):
-        self.logger.debug(sys._getframe().f_code.co_name)
         try:
             v = self.insideDiaEntry.get()
             n = float(v)
-            self.data_store.inside_dia = n
-            self.insideDiaEntry.delete(0, tkinter.END)
-            self.insideDiaEntry.insert(0, str(n))
+            if self.data_store.inside_dia != n:
+                self.logger.debug("change wall from %f to %f"%(self.data_store.inside_dia, n))
+                self.data_store.inside_dia = n
+                self.insideDiaEntry.delete(0, tkinter.END)
+                self.insideDiaEntry.insert(0, str(n))
+                raise_event("UPDATE_LINES_EVENT")
+            else:
+                self.logger.debug("ignore")
             return True
         except ValueError:
             messagebox.showerror("Error", "Could not convert inside diameter to a floating point number.\nRead value was \"%s\"." % (v))
@@ -167,14 +172,19 @@ class UpperFrame(tkinter.Frame):
             pass # ignore always. happens as a result of tkinter's message handling
 
 
+    @debugger
     def wallThicknessCommand(self, event=None):
-        self.logger.debug(sys._getframe().f_code.co_name)
         try:
             v = self.wallThicknessEntry.get()
             n = float(v)
-            self.data_store.wall_thickness = n
-            self.wallThicknessEntry.delete(0, tkinter.END)
-            self.wallThicknessEntry.insert(0, str(n))
+            if n != self.data_store.wall_thickness:
+                self.logger.debug("change wall from %f to %f"%(self.data_store.wall_thickness, n))
+                self.data_store.wall_thickness = n
+                self.wallThicknessEntry.delete(0, tkinter.END)
+                self.wallThicknessEntry.insert(0, str(n))
+                raise_event("UPDATE_LINES_EVENT")
+            else:
+                self.logger.debug("ignore")
             return True
         except ValueError:
             messagebox.showerror("Error", "Could not convert wall thickness to a floating point number.\nRead value was \"%s\"." % (v))
@@ -183,16 +193,21 @@ class UpperFrame(tkinter.Frame):
             pass
 
 
+    @debugger
     def numHolesCommand(self, event=None):
-        self.logger.debug(sys._getframe().f_code.co_name)
         n = 0
         try:
             v = self.numHolesEntry.get()
             n = int(v)
             if n >= 1 and n <= 12:
-                self.data_store.number_holes = n
-                # TODO: interface this to the lower half
-                #self.buildLower()
+                # only raise the event if the number of holes is different from 
+                # what is in the data_store
+                if n != self.data_store.number_holes:
+                    self.logger.debug("change number of holes from %d to %d"%(self.data_store.number_holes, n))
+                    self.data_store.number_holes = n
+                    raise_event('NUM_HOLE_EVENT')
+                else:
+                    self.logger.debug("ignore")
                 return True
             else:
                 self.numHolesEntry.delete(0, tkinter.END)
@@ -210,54 +225,72 @@ class UpperFrame(tkinter.Frame):
             self.numHolesEntry.insert(0, str(self.data_store.number_holes))
 
 
+    @debugger
     def displayFormatCallback(self, event):
-        self.logger.debug(sys._getframe().f_code.co_name)
         if self.displayFormatOpt.current() == 0:
-            self.data_store.disp_frac = False
+            val = False
         else:
-            self.data_store.disp_frac = True
-        self.logger.debug("current format set to: %s"%(str(self.data_store.disp_frac)))
+            val = True
+
+        if val != self.data_store.disp_frac:
+            self.data_store.disp_frac = val
+            raise_event("UPDATE_HOLE_EVENT")
+            self.logger.debug("current format set to: %s"%(str(self.data_store.disp_frac)))
+        else:
+            self.logger.debug("ignore")
 
 
 
+    @debugger
     def measureUnitsCallback(self, event):
-        self.logger.debug(sys._getframe().f_code.co_name)
         if self.measureUnitsOpt.current() == 0:
-            self.displayFormatOpt.config(state=tkinter.DISABLED)
-            self.data_store.units = False
+            val = False
         else:
-            self.displayFormatOpt.config(state="readonly")
-            self.data_store.units = True
-        #self.data_store.set_state()
-        self.logger.debug("current format set to: %s"%(str(self.data_store.units)))
+            val = True
+
+        if self.data_store.units != val:
+            if self.measureUnitsOpt.current() == 0:
+                self.displayFormatOpt.config(state=tkinter.DISABLED)
+            else:
+                self.displayFormatOpt.config(state="readonly")
+            self.data_store.units = val
+            raise_event("CHANGE_UNITS_EVENT")
+            self.logger.debug("current units set to: %s"%(str(self.data_store.units)))
+        else:
+            self.logger.debug("ignore")
         
 
 
+    @debugger
     def bellSelectCallback(self, event):
-        self.logger.debug(sys._getframe().f_code.co_name)
-        self.data_store.bell_selection = self.bellNoteCombo.current()
-        self.logger.debug("current bell selection set to: %d"%(self.data_store.bell_selection))
+        val = self.bellNoteCombo.current()
+        if val != self.data_store.bell_note_select:
+            self.data_store.bell_note_select = val
+            self.logger.debug("current bell selection set to: %d"%(self.data_store.bell_note_select))
+            raise_event("UPDATE_LINES_EVENT")
+        else:
+            self.logger.debug("ignore")
 
 
+    @debugger
     def printButtonCommand(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.printButton.focus_set()
 
 
+    @debugger
     def refreshButtonCommand(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.refreshButton.focus_set()
         self.get_state()
         # TODO: Refresh the bottom, too
 
 
+    @debugger
     def setEmbouchureCommand(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.setEmbouchureButton.focus_set()
 
 
+    @debugger
     def setOtherCommand(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
         self.setOtherButton.focus_set()
 
 
