@@ -8,8 +8,8 @@ DEPS	=	main.py \
 			data_store.py \
 			upper_frame.py \
 			lower_frame.py \
-			logger.py \
-			exception.py
+			exception.py \
+			utiltiy.py 
 
 all: $(TARGET)
 
