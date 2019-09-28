@@ -185,6 +185,7 @@ def raise_event(name, *args):
                 cb(*args)
             else:
                 cb()
+    logger.debug("%s: %s"%(sys._getframe().f_code.co_name, "returning"))
 
 def base_decorator(decorator):
     '''This decorator can be used to turn simple functions

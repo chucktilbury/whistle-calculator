@@ -95,7 +95,7 @@ class UpperFrame(tkinter.Frame):
         '''
         Return the state of the controls in the upper half into the data store.
         '''
-        data = {} # self.data_store.get_state()
+        data = self.data_store.get_state()
 
         if self.displayFormatOpt.current() == 0:
             data['disp_frac'] = False
@@ -127,7 +127,7 @@ class UpperFrame(tkinter.Frame):
         self.titleEntry.delete(0, tkinter.END)
         self.titleEntry.insert(0, data['title'])
 
-        self.bellNoteCombo.current(data['bell_selection'])
+        self.bellNoteCombo.current(data['bell_note_select'])
         self.measureUnitsOpt.current(int(data['units'])) # it's a bool in the data_store
         self.displayFormatOpt.current(int(data['disp_frac'])) # it's a bool in the data_store
 
@@ -147,7 +147,7 @@ class UpperFrame(tkinter.Frame):
 
         self.embouchureAreaEntry.config(state=tkinter.NORMAL)
         self.embouchureAreaEntry.delete(0, tkinter.END)
-        self.embouchureAreaEntry.insert(0, str(data['emb_area']))
+        self.embouchureAreaEntry.insert(0, str(data['embouchure_area']))
         self.embouchureAreaEntry.config(state=tkinter.DISABLED)
 
 
@@ -227,15 +227,16 @@ class UpperFrame(tkinter.Frame):
 
     @debugger
     def displayFormatCallback(self, event):
+        #print(self.displayFormatOpt.current(),self.data_store.get_disp_frac())
         if self.displayFormatOpt.current() == 0:
             val = False
         else:
             val = True
 
-        if val != self.data_store.disp_frac:
-            self.data_store.disp_frac = val
+        if val != self.data_store.get_disp_frac():
+            self.data_store.set_disp_frac(val)
             raise_event("UPDATE_HOLE_EVENT")
-            self.logger.debug("current format set to: %s"%(str(self.data_store.disp_frac)))
+            self.logger.debug("current format set to: %s"%(str(self.data_store.get_disp_frac())))
         else:
             self.logger.debug("ignore")
 
@@ -293,43 +294,3 @@ class UpperFrame(tkinter.Frame):
     def setOtherCommand(self):
         self.setOtherButton.focus_set()
 
-
-    '''
-    def refresh(self):
-        self.logger.debug(sys._getframe().f_code.co_name)
-        print("upper_frame refresh()")
-        self.titleEntry.delete(0, tkinter.END)
-        self.titleEntry.insert(0, self.data_store.get_title())
-        self.bellNoteEntry.current(self.data_store.get_bell_selection())
-
-        self.measureUnitsOpt.current(self.data_store.get_units())
-
-        self.insideDiaEntry.delete(0, tkinter.END)
-        self.insideDiaEntry.insert(0, str(self.data_store.get_inside_dia()))
-        self.wallThicknessEntry.delete(0, tkinter.END)
-        self.wallThicknessEntry.insert(0, str(self.data_store.get_wall_thickness()))
-        self.numHolesEntry.delete(0, tkinter.END)
-        self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
-
-        self.embouchureAreaEntry.config(state=tkinter.NORMAL)
-        self.embouchureAreaEntry.delete(0, tkinter.END)
-        self.embouchureAreaEntry.insert(0, self.data_store.get_emb_area())
-        self.embouchureAreaEntry.config(state=tkinter.DISABLED)
-
-        self.bellFreqEntry.config(state=tkinter.NORMAL)
-        self.bellFreqEntry.delete(0, tkinter.END)
-        self.bellFreqEntry.insert(0, str(self.data_store.note_table[self.data_store.get_bell_selection()]['frequency']))
-        self.bellFreqEntry.config(state=tkinter.DISABLED)
-
-    def store(self):
-        print("upper_frame store()")
-        if self.measureUnitsOpt.current() == 0:
-            self.data_store.set_units(False)
-        else:
-            self.data_store.set_units(True)
-        self.data_store.set_inside_dia(float(self.insideDiaEntry.get()))
-        self.data_store.set_wall_thickness(float(self.wallThicknessEntry.get()))
-        self.data_store.set_number_holes(int(self.numHolesEntry.get()))
-        self.data_store.set_emb_area(float(self.embouchureAreaEntry.get()))
-        self.data_store.set_bell_selection(int(self.bellNoteEntry.current()))
-    '''

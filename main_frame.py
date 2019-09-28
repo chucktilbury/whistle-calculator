@@ -8,7 +8,7 @@ from data_store import DataStore
 from calc import Calculator
 from lower_frame import LowerFrame
 from upper_frame import UpperFrame
-from utility import Logger, debugger
+from utility import Logger, debugger, raise_event
 from exception import AppFatalError
 #from configuration import Configuration
 import utility 
@@ -76,7 +76,8 @@ class MainFrame(tkinter.Frame):
         f = filedialog.askopenfilename(initialfile=self.current_file_name, filetypes=(("Whistle Files","*.wis"), ("all files", "*.*")))
         if f != '':
             self.logger.debug("loading file: %s"%(f))
-            # load the file here
+            self.data.load(f)
+            raise_event("UPDATE_EVERYTHING")
         else:
             self.logger.debug("cancel")
 
@@ -84,14 +85,20 @@ class MainFrame(tkinter.Frame):
     def saveCommand(self):
         d = filedialog.askdirectory(initialdir=os.getcwd(), mustexist=True)
         p = os.path.join(d, self.current_file_name)
-        print("saving file = " + p )
-        #f = open(p, 'w')
-        #f.close()
+        if p != '':
+            print("saving file = " + p )
+            self.data.save(p)
+        else:
+            self.logger.debug("cancel")
 
     @debugger
     def saveasCommand(self):
         f = filedialog.asksaveasfilename(initialfile=self.current_file_name, filetypes=(("Whistle Files","*.wis"), ("all files", "*.*")))
-        print("file save as = " + f)
+        if f != '':
+            print("file save as = " + f)
+            self.data.save(f)
+        else:
+            self.logger.debug("cancel")
 
     @debugger
     def helpCommand(self):

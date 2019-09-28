@@ -26,11 +26,6 @@ class DataStore:
             DataStore()
         return DataStore.__instance
 
-    # TODO: 
-    #  1. Read the default state from a configuration file.
-    #  2. Add methods to save and restore the default state.
-    #  3. Add methods to save and restore the current state as a "saved file".
-    #  See the configuration class
     def __init__(self):
 
         # gate the accress to __init__()
@@ -155,14 +150,11 @@ class DataStore:
         ]
 
         # default values
-        self.load()
+        self.internal_data = {}
+        self.load('default.wis')
 
-        self.bell_freq = self.note_table[self.bell_note_select]['frequency']
         self.intervals = [2, 2, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2]
 
-        # create an array of dictionaries to hold the values for each line
-        #self.line_store = [{'index':k, 'name':'', 'interval':0, 'note':'', 'freq':0.0, 'hole':0.25, 'location':0.0, 'diff':0.0, 'cutoff':0.0} for k in range(12)]
-        self.line_store = []
         self.bellNoteArray = []
         for num in range(len(self.note_table)):
                 self.bellNoteArray.append("%s (%s Hz)"%(self.note_table[num]["note"], str(self.note_table[num]["frequency"])))
@@ -172,55 +164,166 @@ class DataStore:
     # get by data structure
     @debugger
     def get_state(self):
-        return {
-            'disp_frac':self.disp_frac,
-            'units':self.units,
-            'title':self.title,
-            'inside_dia':self.inside_dia,
-            'wall_thickness':self.wall_thickness,
-            'number_holes':self.number_holes,
-            'bell_selection':self.bell_note_select,
-            'emb_area':self.embouchure_area,
-            'bell_freq':self.bell_freq,
-            'line_store':self.line_store
-        }
+        return self.internal_data
 
     # set by data structure
     @debugger
     def set_state(self, data):
-
-        self.disp_frac = data['disp_frac']
-        self.units = data['units']
-        self.title = data['title']
-        self.inside_dia = data['inside_dia']
-        self.wall_thickness = data['wall_thickness']
-        self.number_holes = data['number_holes']
-        self.bell_note_select = data['bell_selection']
-        self.embouchure_area = data['emb_area']
-        self.bell_freq = data['bell_freq']
-        if 'line_store' in data:
-            self.line_store = data['line_store']
+        self.internal_data = data
 
     # get and set the line data structure
     @debugger
     def get_line(self, index):
-        return self.line_store[index]
+        return self.internal_data['hole_values'][index]
 
     @debugger
     def set_line(self, index, line):
-        self.line_store.insert(index, line)
+        #self.internal_data['hole_values'].insert(index, line)
+        self.internal_data['hole_values'][index] = line
 
     @debugger
     def del_line(self, index):
         self.logger.debug("destroy line number %d"%(index))
-        return self.line_store.pop(index)
+        return self.internal_data['hole_values'].pop(index)
 
     @debugger
     def get_line_store(self):
         '''
         Simply return the line store for direct manipulation.
         '''
-        return self.line_store
+        return self.internal_data['hole_values']
+
+    # file IO
+    @debugger
+    def load(self, fname=None):
+        with open(fname, 'rb') as fh:
+            self.internal_data = pickle.load(fh)
+
+    @debugger
+    def save(self, fname=None):
+        with open(fname, "wb") as fh:
+            pickle.dump(self.internal_data, fh, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # getters and setters
+    @debugger
+    def get_disp_frac(self):
+        return self.internal_data['disp_frac']
+
+    @debugger
+    def get_units(self):
+        return self.internal_data['units']
+
+    @debugger
+    def get_title(self):
+        return self.internal_data['title']
+
+    @debugger
+    def get_inside_dia(self):
+        return self.internal_data['inside_dia']
+
+    @debugger
+    def get_wall_thickness(self):
+        return self.internal_data['wall_thickness']
+
+    @debugger
+    def get_number_holes(self):
+        return self.internal_data['number_holes']
+
+    @debugger
+    def get_bell_note_select(self):
+        return self.internal_data['bell_note_select']
+
+    @debugger
+    def get_bell_freq(self):
+        return self.internal_data['bell_freq']
+
+    @debugger
+    def get_embouchure_area(self):
+        return self.internal_data['embouchure_area']
+
+    @debugger
+    def set_disp_frac(self, val):
+        self.internal_data['disp_frac'] = self.validate_type(val, bool)
+
+    @debugger
+    def set_units(self, val):
+        self.internal_data['units'] = self.validate_type(val, bool)
+
+    @debugger
+    def set_title(self, val):
+        self.internal_data['title'] = self.validate_type(val, str)
+
+    @debugger
+    def set_inside_dia(self, val):
+        self.internal_data['inside_dia'] = self.validate_type(val, float)
+
+    @debugger
+    def set_wall_thickness(self, val):
+        self.internal_data['wall_thickness'] = self.validate_type(val, float)
+
+    @debugger
+    def set_number_holes(self, val):
+        self.internal_data['number_holes'] = self.validate_type(val, int)
+
+    @debugger
+    def set_bell_note_select(self, val):
+        self.internal_data['bell_note_select'] = self.validate_type(val, int)
+
+    @debugger
+    def set_bell_freq(self, val):
+        self.internal_data['bell_freq'] = self.validate_type(val, float)
+
+    @debugger
+    def set_embouchure_area(self, val):
+        self.internal_data['embouchure_area'] = self.validate_type(val, float)
+
+    @debugger
+    def get_hole_in_inc(self):
+        return self.internal_data['hole_in_inc']
+    
+    @debugger
+    def get_hole_in_max(self):
+        return self.internal_data['hole_in_max']
+    
+    @debugger
+    def get_hole_in_min(self):
+        return self.internal_data['hole_in_min']
+    
+    @debugger
+    def get_hole_mm_inc(self):
+        return self.internal_data['hole_mm_inc']
+    
+    @debugger
+    def get_hole_mm_max(self):
+        return self.internal_data['hole_mm_max']
+
+    @debugger
+    def get_hole_mm_min(self):
+        return self.internal_data['hole_mm_min']
+
+    @debugger
+    def set_hole_in_inc(self, val):
+        self.internal_data['hole_in_inc'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_in_max(self, val):
+        self.internal_data['hole_in_max'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_in_min(self, val):
+        self.internal_data['hole_in_min'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_mm_inc(self, val):
+        self.internal_data['hole_mm_inc'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_mm_max(self, val):
+        self.internal_data['hole_mm_max'] = self.validate_type(val, float)
+
+    @debugger
+    def set_hole_mm_min(self, val):
+        self.internal_data['hole_mm_min'] = self.validate_type(val, float)
 
     # Utilities
     @debugger
@@ -266,201 +369,9 @@ class DataStore:
         else:
             return var
 
-    @debugger
-    def load(self, fname=None):
-        self.disp_frac = True   # True if the holes are displayed in fractions
-        self.units = False      # True if the units are mm and false if it's inch
-        self.title = "Default Whistle"
-        self.inside_dia = 0.5
-        self.wall_thickness = 0.15
-        self.number_holes = 6
-        self.bell_note_select = 62
-        self.embouchure_area = 1.2
-
-        self.mm_in = False
-        self.in_inc = 1/64
-        self.in_max = 1/2
-        self.in_min = 3/32
-        self.in_value = 11/32
-        self.mm_inc = 0.5
-        self.mm_max = 12.5
-        self.mm_min = 2.5
-        self.mm_value = 9.0
-
-    @debugger
-    def save(self, fname=None):
-        pass
-
     def print_data(self):
         data = self.get_state()
-        print("line store")
-        for l in data['line_store']:
-            print(l.get_state())
-        del data['line_store']
-        print("upper store")
         print(data)
 
-class Configuration:
-    '''
-    Deal with loading and saving the state of the calculator, including the
-    default values upon load.
-
-    This is a singleton class. Use get_instance() instead of the constructor.
-
-    TODO: Save current state as the state for the next time the app is
-          started.
-    '''
-
-    __instance = None
-
-    @staticmethod
-    def get_instance():
-        '''
-        This static method is used to get the singleton object for this class.
-        '''
-        if Configuration.__instance == None:
-            Configuration()
-        return Configuration.__instance
-
-    def __init__(self):
-
-        # gate the accress to __init__()
-        if Configuration.__instance != None:
-            raise Exception("Configuration is a singleton class. Use get_instance() instead of the constructor.")
-        else:
-            Configuration.__instance = self
-
-        self.logger = Logger(self, Logger.DEBUG)
-        self.logger.debug("enter constructor")
-        self.data_store = DataStore.get_instance()
-
-        # load the defaults
-        self.load()
-
-        # line defaults
-        self.mm_in = False
-        self.in_inc = 1/64
-        self.in_max = 1/2
-        self.in_min = 3/32
-        self.in_value = 11/32
-        self.mm_inc = 0.5
-        self.mm_max = 12.5
-        self.mm_min = 2.5
-        self.mm_value = 9.0
-
-        # upper defaults
-        self.title = "Default Whistle"
-        self.inside_dia = 0.5
-        self.num_holes = 6
-        self.emb_area = 1.2
-        self.units = False
-        self.wall_thick = 0.15
-        self.bell_select = 62
-        self.format = True
-
-        self.file_name = 'untitled.wis' # default file name
-
-        self.logger.debug("leave constructor")
-
-    @debugger
-    def load(self, fname=None):
-        pass
-
-    @debugger
-    def save(self, fname=None):
-        pass
-
-    @debugger
-    def get(self):
-        pass
-    '''
-    # individual getters
-    def get_disp_frac(self):
-        self.logger.debug("get_disp_frac(): %s"%(str(self.disp_frac)))
-        return self.disp_frac
-    
-    def get_units(self):
-        self.logger.debug("get_units(): %s"%(str(self.units)))
-        return self.units
-
-    def get_title(self):
-        self.logger.debug("get_title(): %s"%(str(self.title)))
-        return self.title
-
-    def get_inside_dia(self):
-        self.logger.debug("get_inside_dia(): %s"%(str(self.inside_dia)))
-        return self.inside_dia
-
-    def get_wall_thickness(self):
-        self.logger.debug("get_wall_thickness(): %s"%(str(self.wall_thickness)))
-        return self.wall_thickness
-
-    def get_number_holes(self):
-        self.logger.debug("get_number_holes(): %s"%(str(self.number_holes)))
-        return self.number_holes
-
-    def get_bell_selection(self):
-        self.logger.debug("get_bell_selection(): %s"%(str(self.bell_note_select)))
-        return self.bell_note_select
-
-    def get_emb_area(self):
-        self.logger.debug("get_disp_frac(): %s"%(str(self.disp_frac)))
-        return self.embouchure_area
-
-    def get_bell_freq(self):
-        self.logger.debug("get_emb_area(): %s"%(str(self.bell_freq)))
-        return self.bell_freq
-
-#    def get_line_data(self):
-#        self.logger.debug("DataStore.get_line_data(): %s"%(str(self.line_data)))
-#        return self.line_data
-
-    # individual setters
-    def set_disp_frac(self, data):
-        self.disp_frac = self.validate_type(data, bool)
-        self.logger.debug("set_disp_frac(): %s"%(str(self.disp_frac)))
-
-    def set_units(self, data):
-        self.units = self.validate_type(data, bool)
-        self.logger.debug("set_units(): %s"%(str(self.units)))
-
-    def set_title(self, data):
-        self.title = self.validate_type(data, str)
-        self.logger.debug("set_title(): %s"%(str(self.title)))
-
-    def set_inside_dia(self, data):
-        self.inside_dia = self.validate_type(data, float)
-        self.logger.debug("set_inside_dia(): %s"%(str(self.inside_dia)))
-
-    def set_wall_thickness(self, data):
-        self.wall_thickness = self.validate_type(data, float)
-        self.logger.debug("set_wall_thickness(): %s"%(str(self.wall_thickness)))
-
-    def set_number_holes(self, data):
-        self.number_holes = self.validate_type(data, int)
-        self.logger.debug("set_number_holes(): %s"%(str(self.number_holes)))
-
-    def set_bell_selection(self, data):
-        self.bell_note_select = self.validate_type(data, int)
-        self.logger.debug("set_bell_selection(): %s"%(str(self.bell_note_select)))
-
-    def set_emb_area(self, data):
-        self.embouchure_area = self.validate_type(data, float)
-        self.logger.debug("set_emb_area(): %s"%(str(self.embouchure_area)))
-
-    def set_bell_freq(self, data):
-        self.bell_freq = self.validate_type(data, float)
-        self.logger.debug("set_bell_freq(): %s"%(str(self.bell_freq)))
-
-    # Line getters and setters. These are so that the class using the line 
-    # only needs to know about the data_store object and not about the line
-    # object.
 
 
-#    def set_line_data(self, data):
-#        if type(data) != type(0.0):
-#            messagebox.showerror("Error", "set_line_data: expected type %s but got type %s"%(type(0.0), type(data)))
-#            return
-#        self.line_data = data
-
-    '''
