@@ -1,7 +1,8 @@
 
 import sys, math, time
+import traceback
 from exception import AppError
-
+from data_store import DataStore
 
 class Logger(object):
     '''
@@ -85,14 +86,32 @@ class Logger(object):
             t = time.strftime("[%Y%m%d %H:%M:%S]")
             self.stream.write("%s %s: %s.%s(): %s\n"%(t, "DEBUG", self.name, name, args))
 
-logger = Logger("Utility", Logger.DEBUG)
+logger = Logger("Utility", Logger.ERROR)
 
 # Utility methods
+def mm_to_in(val):
+    '''
+    Simply convert the value given from MM to inches and round to the increment
+    '''
+    logger.debug(sys._getframe().f_code.co_name)
+    data = DataStore.get_instance()
+    return rnd(val*0.03937, data.internal_data['home_in_inc'])
+
+def in_to_mm(val):
+    '''
+    Simply convert the value given from inches to MM and round to the increment
+    '''
+    logger.debug(sys._getframe().f_code.co_name)
+    data = DataStore.get_instance()
+    return rnd(val/0.03937, data.internal_data['hole_mm_inc'])
+
 def reduce(val):
     '''
     Reduce the internal value to a fraction and return it as a string.
     '''
     logger.debug(sys._getframe().f_code.co_name)
+    if val == 0.0:
+        return '--'
 
     w = int(val / (1/64))
     f = 64
@@ -128,9 +147,13 @@ def rnd(num, factor):
     '''
     Find the closest multiple of factor for num.
     '''
+    if factor == 0.0:
+        return num
+
     logger.debug(sys._getframe().f_code.co_name)
     a = math.ceil(num/factor)*factor
     b = math.floor(num/factor)*factor
+    # take the closest one
     if abs(num - a) < abs(num - b):
         return a
     else:
@@ -168,7 +191,11 @@ def register_event(name, callback):
     '''
     Store the event in the internal storage.
     '''
-    logger.debug(sys._getframe().f_code.co_name)
+    logger.debug("%s: %s: %s.%s"%(
+                sys._getframe().f_code.co_name, 
+                name, 
+                callback.__self__.__class__.__name__, 
+                callback.__name__))
     if not name in __event_list__:
         __event_list__[name] = []
     __event_list__[name].append(callback)
@@ -220,9 +247,13 @@ def debugger(func):
     level is below DEBUG this function does nothing.
     '''
     def wrapper(*args, **kwargs):
-        args[0].logger.debugger(func.__name__, "-- enter")
-        retv = func(*args, **kwargs)
-        args[0].logger.debugger(func.__name__, "-- leave")
-        return retv
+        try:
+            args[0].logger.debugger(func.__name__, "-- enter")
+            retv = func(*args, **kwargs)
+            args[0].logger.debugger(func.__name__, "-- leave")
+            return retv
+        except Exception as ex:
+            print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
+
     return wrapper
 

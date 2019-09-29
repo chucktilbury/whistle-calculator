@@ -1,10 +1,10 @@
 import tkinter
 import sys
+import traceback
 
 from data_store import DataStore
-#from configuration import Configuration
 from line_widgit import LineWidgit
-from utility import Logger, debugger
+from utility import Logger, debugger, register_event, raise_event
 
 class LowerFrame(tkinter.Frame):
     '''
@@ -17,9 +17,11 @@ class LowerFrame(tkinter.Frame):
         self.data_store = DataStore.get_instance()
         self.master = master
         #self.line_data = []
+        self.line_widgits = []
+        register_event('UPDATE_LOWER_FRAME_EVENT', self.update_frame)
+        register_event('UPDATE_LINES_EVENT', self.set_state)
+        register_event('UPDATE_NOTES_EVENT', self.update_notes)
 
-    @debugger
-    def create_frame(self):
         tkinter.Label(self.master, width=12, text="Hole").grid(row=0, column=0, sticky=tkinter.W)
         tkinter.Label(self.master, width=5, text="Interval").grid(row=0, column=1, sticky=tkinter.W)
         tkinter.Label(self.master, width=10, text="Note").grid(row=0, column=2, sticky=tkinter.W)
@@ -29,38 +31,86 @@ class LowerFrame(tkinter.Frame):
         tkinter.Label(self.master, width=12, text="Hole Diff").grid(row=0, column=6, sticky=tkinter.W)
         tkinter.Label(self.master, width=12, text="Cutoff Freq").grid(row=0, column=7, sticky=tkinter.W)
 
-        self.line_widgits = []
-        index = self.data_store.get_bell_note_select()
-        for n in range(self.data_store.get_number_holes()):
-            index += self.data_store.intervals[n]
-            line = self.data_store.get_line(n)
-
-            # constructed with the minimum data to do a calculation.
-            lw = LineWidgit(self.master, n,
-                            inter=line['interval'],
-                            note=line['note'],
-                            freq=line['freq'],
-                            hole_size=line['hole_size'],
-                            location=line['location'],
-                            cutoff=line['cutoff'],
-                            diff=line['diff'],
-                            units=self.data_store.get_units(),
-                            fracs=self.data_store.get_disp_frac())
-                            #inter=self.data_store.intervals[n],
-                            #freq=self.data_store.note_table[index]["frequency"],
-                            #note=self.data_store.note_table[index]["note"])
-
-            lw.grid(row=n+1, column=0, columnspan=8, sticky=tkinter.W)
+        # create all of the lines
+        for n in range(12):
+            lw = LineWidgit(self.master, n)
             self.line_widgits.append(lw)
-            #self.data_store.set_line(n, lw)
-            #self.data_store.line_data.append(lw)
+
+        for idx in range(self.data_store.get_number_holes()):
+            self.line_widgits[idx].grid(row=idx+1, column=0, columnspan=8, sticky=tkinter.W)
+            self.line_widgits[idx].set_state()
+
+        self.logger.debug("end constructor")
+
+    # @debugger
+    # def create_frame(self):
+    #     try:
+
+    #         self.line_widgits = []
+    #         self.logger.debug("create %d holes"%(self.data_store.get_number_holes()))
+    #         for n in range(self.data_store.get_number_holes()):
+                
+    #             if self.data_store.get_hole_size(n) == 0.0:
+    #                 self.data_store.set_hole_size(n, self.data_store.get_hole_min())
+
+    #             # constructed with the minimum data to do a calculation.
+    #             lw = LineWidgit(self.master, n)
+    #             lw.grid(row=n+1, column=0, columnspan=8, sticky=tkinter.W)
+    #             self.line_widgits.append(lw)
+
+    #         self.update_notes()            
+    #         raise_event("CALCULATE_EVENT")
+
+    #     except Exception as ex:
+    #         print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
+        
+    #     self.logger.debug("%d holes created"%(len(self.line_widgits)))
+        
+
+    # @debugger
+    # def destroy_frame(self):
+    #     for line in self.line_widgits:
+    #         line.hole_ctl.destroy()
+    #         line.destroy()
+    #     # for s in self.master.grid_slaves():
+    #     #     s.destroy()
+    #     del self.line_widgits
+    #     self.line_widgits = []
 
     @debugger
-    def destroy_frame(self):
-        #del self.data_store.line_store
-        #self.data_store.line_store = []
-        for s in self.master.grid_slaves():
-            s.destroy()
-        del self.line_widgits
-        self.line_widgits = []
+    def update_frame(self):
+        # hade all of the lines
+        for idx in range(12):
+            self.line_widgits[idx].grid_forget()
+
+        # expose the correct number of lines
+        for idx in range(self.data_store.get_number_holes()):
+            self.line_widgits[idx].grid(row=idx+1, column=0, columnspan=8, sticky=tkinter.W)
+            self.line_widgits[idx].set_state()
         
+    @debugger
+    def set_state(self):
+        '''
+        Copy data from the datastore into all lines in GUI
+        '''
+        for line in self.line_widgits:
+            line.set_state()
+
+    @debugger
+    def get_state(self):
+        '''
+        Copy data from the line widgits into the data_store
+        '''
+        for line in self.line_widgits:
+            line.get_state()
+
+    @debugger
+    def update_notes(self):
+        sel = self.data_store.get_bell_note_select()
+        for index, line in enumerate(self.line_widgits): 
+            sel += self.data_store.get_hole_interval(index)
+            self.data_store.set_hole_freq(index, self.data_store.note_table[sel]["frequency"])
+            self.data_store.set_hole_note(index, self.data_store.note_table[sel]["note"])
+            line.set_state()
+            #raise_event("CALCULATE_EVENT")
+

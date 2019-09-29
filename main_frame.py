@@ -61,7 +61,17 @@ class MainFrame(tkinter.Frame):
                     font=("Helvetica", 14)).pack()
 
         self.upper_frame.create_frame()
-        self.lower_frame.create_frame()
+        self.lower_frame.update_frame()
+
+    @debugger
+    def set_state(self):
+        self.upper_frame.set_state()
+        self.lower_frame.set_state()
+
+    @debugger
+    def get_state(self):
+        self.upper_frame.get_state()
+        self.lower_frame.get_state()
 
     @debugger
     def close_window(self):
@@ -77,7 +87,7 @@ class MainFrame(tkinter.Frame):
         if f != '':
             self.logger.debug("loading file: %s"%(f))
             self.data.load(f)
-            raise_event("UPDATE_EVERYTHING")
+            self.set_state()
         else:
             self.logger.debug("cancel")
 

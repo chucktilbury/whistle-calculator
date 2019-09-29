@@ -16,7 +16,7 @@ class HoleSizeWidgit(tkinter.Frame):
         the value according to the state. It has up and down buttons used to
         increment or decrement the value. 
         '''
-        self.logger = Logger(self, Logger.DEBUG)
+        self.logger = Logger(self, Logger.ERROR)
         self.logger.debug("constructor")
         self.index = line
 
@@ -37,19 +37,7 @@ class HoleSizeWidgit(tkinter.Frame):
                 0xff, 0x01, 0xfe, 0x00, 0x7c, 0x00, 0x38, 0x00, 0x10, 0x00 };
         """
 
-        # TODO: Put these constants into a configuration file.
-        #       Need to resolve the mm/inch question for configurations.
-        #       Track it separately? Or just change the values?
-        # self.inc = 1/64
-        # self.max = 1/2
-        # self.min = 3/32
-        # self.value = 11/32
-        # self.fracs = True # display as fractions if true
-        # self.mm_in = False # calculate as mm if true
-
         self.entry = tkinter.Entry(self, width=25-18)
-        #self.entry.insert(0, default)
-
         self.entry.grid(row=0, column=1, rowspan=2)
 
         self.bitmap_up = tkinter.BitmapImage(data=BITMAP_UP, foreground="black", background="white")
@@ -73,74 +61,62 @@ class HoleSizeWidgit(tkinter.Frame):
         Put the current value into the data_store.
         '''
         try:
-            if self.fracs:
-                self.value = utility.fractof(self.entry.get())
+            if self.data_store.get_disp_frac():
+                val = utility.fractof(self.entry.get())
             else:
-                self.value = float(self.entry.get())
+                val = float(self.entry.get())
         except ValueError as e:
             raise AppError('get_state', 'Cannot convert hole to float: %s'%(self.entry.get()), e)
 
-        line = self.data_store.get_line(self.index)
-        line['hole_size'] = self.value
-        self.data_store.set_line(self.index, line)
-
-    @debugger
-    def update_state(self):
-        try:
-            if self.data_store.get_units(): # if true then metric
-                self.inc = self.data_store.get_hole_mm_inc()
-                self.max = self.data_store.get_hole_mm_max()
-                self.min = self.data_store.get_hole_mm_min()
-            else:
-                self.inc = self.data_store.get_hole_in_inc()
-                self.max = self.data_store.get_hole_in_max()
-                self.min = self.data_store.get_hole_in_min()
-            self.fracs = self.data_store.get_disp_frac()
-            self.units = self.data_store.get_units()
-            self.value = self.data_store.get_line(self.index)['hole_size']
-
-        except AppFatalError as e:
-            e.show()
-        except Exception as e:
-            raise AppFatalError(str(e), 'HoleSizeWidgit.set_state')
+        self.data_store.set_hole_size(self.index, val)
 
     @debugger
     def set_state(self):
         '''
-        Get the current state from the data_store
+        Get the current state from the data_store and place it in the GUI
         '''
-        self.update_state()
         self.update_val()   # display the new state
 
     @debugger
     def update_val(self):
-        self.update_state()
+        siz = self.data_store.get_hole_size(self.index)
         self.entry.delete(0, tkinter.END)
-        if not self.units:
-            self.logger.debug("updating inch value to %s"%(str(self.value)))
-            if self.fracs:
-                self.entry.insert(0, "%s"%(utility.reduce(self.value)))
+        if not self.data_store.get_units():
+            self.logger.debug("updating inch value to %s"%(str(siz)))
+            if self.data_store.get_disp_frac():
+                self.entry.insert(0, "%s"%(utility.reduce(siz)))
             else:
-                self.entry.insert(0, "%0.3f"%(self.value))
+                self.entry.insert(0, "%0.3f"%(siz))
         else:
-            self.logger.debug("updating mm value to %s"%(str(self.value)))
-            self.entry.insert(0, "%0.3f"%(self.value))
-            
+            self.logger.debug("updating mm value to %s"%(str(siz)))
+            self.entry.insert(0, "%0.3f"%(siz))
 
     # event handlers
     @debugger
     def incr_command(self):
-        self.value = self.value + self.inc
-        if self.value > self.max:
-            self.value = self.max
-        self.update_val()
+        siz = self.data_store.get_hole_size(self.index)
+        siz = siz + self.data_store.get_hole_inc()
+
+        if siz > self.data_store.get_hole_max():
+            siz = self.data_store.get_hole_max()
+        elif siz < self.data_store.get_hole_min():
+            siz = self.data_store.get_hole_min()
+
+        self.data_store.set_hole_size(self.index, siz)
+        self.update_val() # update the GUI
 
     @debugger
     def decr_command(self):
-        self.value = self.value - self.inc
-        if self.value < self.min:
-            self.value = self.min
-        self.update_val()
+        siz = self.data_store.get_hole_size(self.index)
+        siz = siz - self.data_store.get_hole_inc()
+        
+        if siz < self.data_store.get_hole_min():
+            siz = self.data_store.get_hole_min()
+        elif siz > self.data_store.get_hole_max():
+            siz = self.data_store.get_hole_max()
+
+        self.data_store.set_hole_size(self.index, siz)
+        self.update_val() # update the GUI
 
     def print_state(self):
         self.logger.msg(str(self.get_state()))

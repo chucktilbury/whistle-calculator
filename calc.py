@@ -2,7 +2,7 @@ import math, sys
 
 from data_store import DataStore
 #from configuration import Configuration
-from utility import Logger, debugger
+from utility import Logger, debugger, register_event
 
 # Speed of Sound = 345 m/s = 1130 ft/s = 770 miles/hr
 
@@ -18,6 +18,7 @@ class Calculator:
         #self.configuration = Configuration.get_instance()
         self.data = DataStore.get_instance()
         self.logger.debug("end constructor")
+        register_event("CALCULATE_EVENT", self.do_calc)
 
 
     @debugger
@@ -25,4 +26,8 @@ class Calculator:
         '''
         Make all calculations based on the current state.
         '''
+        pass
+
+    @debugger
+    def do_calc(self):
         pass

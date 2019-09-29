@@ -95,26 +95,25 @@ class UpperFrame(tkinter.Frame):
         '''
         Return the state of the controls in the upper half into the data store.
         '''
-        data = self.data_store.get_state()
 
         if self.displayFormatOpt.current() == 0:
-            data['disp_frac'] = False
+            self.data_store.set_disp_frac(False)
         else:
-            data['disp_frac'] = True
+            self.data_store.set_disp_frac(True)
 
         if self.measureUnitsOpt.current() == 0:
-            data['units'] = False
+            self.data_store.set_units(False)
         else:
-            data['units'] = True
+            self.data_store.set_units(True)
 
-        data['title'] = self.titleEntry.get()
-        data['inside_dia'] = float(self.insideDiaEntry.get())
-        data['wall_thickness'] = float(self.wallThicknessEntry.get())
-        data['number_holes'] = int(self.numHolesEntry.get())
-        data['bell_selection'] = self.bellNoteCombo.current()
-        data['emb_area'] = float(self.embouchureAreaEntry.get())
-        data['bell_freq'] = self.data_store.note_table[data['bell_selection']]['frequency'] # float(self.bellFreqEntry.get())
-        self.data_store.set_state(data)
+        self.data_store.set_title(self.titleEntry.get())
+        self.data_store.set_inside_dia(float(self.insideDiaEntry.get()))
+        self.data_store.set_wall_thickness(float(self.wallThicknessEntry.get()))
+        self.data_store.set_number_holes(int(self.numHolesEntry.get()))
+        self.data_store.set_bell_note_select(self.bellNoteCombo.current())
+        self.data_store.set_embouchure_area(float(self.embouchureAreaEntry.get()))
+        self.data_store.set_bell_freq(
+            self.data_store.note_table[self.data_store.get_bell_note_select()]['frequency'])
 
 
     @debugger
@@ -122,32 +121,30 @@ class UpperFrame(tkinter.Frame):
         '''
         Take the state from the data store and put in the GUI.
         '''
-        data = self.data_store.get_state()
-
         self.titleEntry.delete(0, tkinter.END)
-        self.titleEntry.insert(0, data['title'])
+        self.titleEntry.insert(0, self.data_store.get_title())
 
-        self.bellNoteCombo.current(data['bell_note_select'])
-        self.measureUnitsOpt.current(int(data['units'])) # it's a bool in the data_store
-        self.displayFormatOpt.current(int(data['disp_frac'])) # it's a bool in the data_store
+        self.bellNoteCombo.current(self.data_store.get_bell_note_select())
+        self.measureUnitsOpt.current(int(self.data_store.get_units())) # it's a bool in the data_store
+        self.displayFormatOpt.current(int(self.data_store.get_disp_frac())) # it's a bool in the data_store
 
         self.insideDiaEntry.delete(0, tkinter.END)
-        self.insideDiaEntry.insert(0, str(data['inside_dia']))
+        self.insideDiaEntry.insert(0, str(self.data_store.get_inside_dia()))
 
         self.wallThicknessEntry.delete(0, tkinter.END)
-        self.wallThicknessEntry.insert(0, str(data['wall_thickness']))
+        self.wallThicknessEntry.insert(0, str(self.data_store.get_wall_thickness()))
 
         self.numHolesEntry.delete(0, tkinter.END)
-        self.numHolesEntry.insert(0, str(data['number_holes']))
+        self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
 
         self.bellFreqEntry.config(state=tkinter.NORMAL)
         self.bellFreqEntry.delete(0, tkinter.END)
-        self.bellFreqEntry.insert(0, str(data['bell_freq']))
+        self.bellFreqEntry.insert(0, str(self.data_store.get_bell_freq()))
         self.bellFreqEntry.config(state=tkinter.DISABLED)
 
         self.embouchureAreaEntry.config(state=tkinter.NORMAL)
         self.embouchureAreaEntry.delete(0, tkinter.END)
-        self.embouchureAreaEntry.insert(0, str(data['embouchure_area']))
+        self.embouchureAreaEntry.insert(0, str(self.data_store.get_embouchure_area()))
         self.embouchureAreaEntry.config(state=tkinter.DISABLED)
 
 
@@ -156,12 +153,12 @@ class UpperFrame(tkinter.Frame):
         try:
             v = self.insideDiaEntry.get()
             n = float(v)
-            if self.data_store.inside_dia != n:
-                self.logger.debug("change wall from %f to %f"%(self.data_store.inside_dia, n))
-                self.data_store.inside_dia = n
+            if self.data_store.get_inside_dia() != n:
+                self.logger.debug("change wall from %f to %f"%(self.data_store.get_inside_dia(), n))
+                self.data_store.set_inside_dia(n)
                 self.insideDiaEntry.delete(0, tkinter.END)
                 self.insideDiaEntry.insert(0, str(n))
-                raise_event("UPDATE_LINES_EVENT")
+                raise_event("CALCULATE_EVENT")
             else:
                 self.logger.debug("ignore")
             return True
@@ -177,12 +174,12 @@ class UpperFrame(tkinter.Frame):
         try:
             v = self.wallThicknessEntry.get()
             n = float(v)
-            if n != self.data_store.wall_thickness:
-                self.logger.debug("change wall from %f to %f"%(self.data_store.wall_thickness, n))
-                self.data_store.wall_thickness = n
+            if n != self.data_store.get_wall_thickness():
+                self.logger.debug("change wall from %f to %f"%(self.data_store.get_wall_thickness(), n))
+                self.data_store.set_wall_thickness(n)
                 self.wallThicknessEntry.delete(0, tkinter.END)
                 self.wallThicknessEntry.insert(0, str(n))
-                raise_event("UPDATE_LINES_EVENT")
+                raise_event("CALCULATE_EVENT")
             else:
                 self.logger.debug("ignore")
             return True
@@ -202,27 +199,27 @@ class UpperFrame(tkinter.Frame):
             if n >= 1 and n <= 12:
                 # only raise the event if the number of holes is different from 
                 # what is in the data_store
-                if n != self.data_store.number_holes:
-                    self.logger.debug("change number of holes from %d to %d"%(self.data_store.number_holes, n))
-                    self.data_store.number_holes = n
-                    raise_event('NUM_HOLE_EVENT')
+                if n != self.data_store.get_number_holes():
+                    self.logger.debug("change number of holes from %d to %d"%(self.data_store.get_number_holes(), n))
+                    self.data_store.set_number_holes(n)
+                    raise_event('UPDATE_LOWER_FRAME_EVENT')
                 else:
                     self.logger.debug("ignore")
                 return True
             else:
                 self.numHolesEntry.delete(0, tkinter.END)
-                self.numHolesEntry.insert(0, str(self.data_store.number_holes))
+                self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
                 messagebox.showerror("Error", message="Number of holes must be an integer between 1 and 12.\nRead value was \"%s\"." % (v))
                 return False
         except ValueError as e:
             print(repr(e))
             self.numHolesEntry.delete(0, tkinter.END)
-            self.numHolesEntry.insert(0, str(self.data_store.number_holes))
+            self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
             messagebox.showerror("Error", message="Could not convert number of holes to an integer.\nRead value was \"%s\"." % (v))
             return False
         except IndexError:
             self.numHolesEntry.delete(0, tkinter.END)
-            self.numHolesEntry.insert(0, str(self.data_store.number_holes))
+            self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
 
 
     @debugger
@@ -249,14 +246,14 @@ class UpperFrame(tkinter.Frame):
         else:
             val = True
 
-        if self.data_store.units != val:
+        if self.data_store.get_units() != val:
             if self.measureUnitsOpt.current() == 0:
                 self.displayFormatOpt.config(state=tkinter.DISABLED)
             else:
                 self.displayFormatOpt.config(state="readonly")
-            self.data_store.units = val
+            self.data_store.set_units(val)
             raise_event("CHANGE_UNITS_EVENT")
-            self.logger.debug("current units set to: %s"%(str(self.data_store.units)))
+            self.logger.debug("current units set to: %s"%(str(self.data_store.get_units())))
         else:
             self.logger.debug("ignore")
         
@@ -264,11 +261,14 @@ class UpperFrame(tkinter.Frame):
 
     @debugger
     def bellSelectCallback(self, event):
+        '''
+        Change the data_store to match the new bell selection
+        '''
         val = self.bellNoteCombo.current()
-        if val != self.data_store.bell_note_select:
-            self.data_store.bell_note_select = val
-            self.logger.debug("current bell selection set to: %d"%(self.data_store.bell_note_select))
-            raise_event("UPDATE_LINES_EVENT")
+        if val != self.data_store.get_bell_note_select():
+            self.data_store.set_bell_note_select(val)
+            self.logger.debug("current bell selection set to: %d"%(self.data_store.get_bell_note_select()))
+            raise_event("UPDATE_NOTES_EVENT")
         else:
             self.logger.debug("ignore")
 

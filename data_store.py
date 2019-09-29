@@ -1,4 +1,4 @@
-import sys, pickle, zlib
+import sys, pickle, pprint
 from tkinter import messagebox
 from utility import Logger, debugger
 from exception import AppError, AppFatalError, AppWarning
@@ -153,7 +153,7 @@ class DataStore:
         self.internal_data = {}
         self.load('default.wis')
 
-        self.intervals = [2, 2, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2]
+        # self.intervals = [2, 2, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2]
 
         self.bellNoteArray = []
         for num in range(len(self.note_table)):
@@ -161,37 +161,37 @@ class DataStore:
 
         self.logger.debug("leave constructor")
 
-    # get by data structure
-    @debugger
-    def get_state(self):
-        return self.internal_data
+    # # get by data structure
+    # @debugger
+    # def get_state(self):
+    #     return self.internal_data
 
-    # set by data structure
-    @debugger
-    def set_state(self, data):
-        self.internal_data = data
+    # # set by data structure
+    # @debugger
+    # def set_state(self, data):
+    #     self.internal_data = data
 
-    # get and set the line data structure
-    @debugger
-    def get_line(self, index):
-        return self.internal_data['hole_values'][index]
+    # # get and set the line data structure
+    # @debugger
+    # def get_line(self, index):
+    #     return self.internal_data['hole_values'][index]
 
-    @debugger
-    def set_line(self, index, line):
-        #self.internal_data['hole_values'].insert(index, line)
-        self.internal_data['hole_values'][index] = line
+    # @debugger
+    # def set_line(self, index, line):
+    #     #self.internal_data['hole_values'].insert(index, line)
+    #     self.internal_data['hole_values'][index] = line
 
-    @debugger
-    def del_line(self, index):
-        self.logger.debug("destroy line number %d"%(index))
-        return self.internal_data['hole_values'].pop(index)
+    # @debugger
+    # def del_line(self, index):
+    #     self.logger.debug("destroy line number %d"%(index))
+    #     return self.internal_data['hole_values'].pop(index)
 
-    @debugger
-    def get_line_store(self):
-        '''
-        Simply return the line store for direct manipulation.
-        '''
-        return self.internal_data['hole_values']
+    # @debugger
+    # def get_line_store(self):
+    #     '''
+    #     Simply return the line store for direct manipulation.
+    #     '''
+    #     return self.internal_data['hole_values']
 
     # file IO
     @debugger
@@ -263,7 +263,10 @@ class DataStore:
 
     @debugger
     def set_number_holes(self, val):
+        #self.logger.push_level(Logger.DEBUG)
+        #self.logger.debug("setting holes to %d"%(val))
         self.internal_data['number_holes'] = self.validate_type(val, int)
+        #self.logger.pop_level()
 
     @debugger
     def set_bell_note_select(self, val):
@@ -278,52 +281,112 @@ class DataStore:
         self.internal_data['embouchure_area'] = self.validate_type(val, float)
 
     @debugger
-    def get_hole_in_inc(self):
-        return self.internal_data['hole_in_inc']
+    def get_hole_inc(self):
+        if self.internal_data['units']:
+            return self.internal_data['hole_mm_inc']
+        else:
+            return self.internal_data['hole_in_inc']
     
     @debugger
-    def get_hole_in_max(self):
-        return self.internal_data['hole_in_max']
+    def get_hole_max(self):
+        if self.internal_data['units']:
+            return self.internal_data['hole_mm_max']
+        else:
+            return self.internal_data['hole_in_max']
     
     @debugger
-    def get_hole_in_min(self):
-        return self.internal_data['hole_in_min']
+    def get_hole_min(self):
+        if self.internal_data['units']:
+            return self.internal_data['hole_mm_min']
+        else:
+            return self.internal_data['hole_in_min']
     
     @debugger
-    def get_hole_mm_inc(self):
-        return self.internal_data['hole_mm_inc']
+    def set_hole_inc(self, val):
+        if self.internal_data['units']:
+            self.internal_data['hole_mm_inc'] = self.validate_type(val, float)
+        else:
+            self.internal_data['hole_in_inc'] = self.validate_type(val, float)
     
     @debugger
-    def get_hole_mm_max(self):
-        return self.internal_data['hole_mm_max']
+    def set_hole_max(self, val):
+        if self.internal_data['units']:
+            self.internal_data['hole_mm_max'] = self.validate_type(val, float)
+        else:
+            self.internal_data['hole_in_max'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_min(self, val):
+        if self.internal_data['units']:
+            self.internal_data['hole_mm_min'] = self.validate_type(val, float)
+        else:
+            self.internal_data['hole_in_min'] = self.validate_type(val, float)
+    
+    @debugger
+    def get_hole_size(self, index):
+        return self.internal_data['hole_sizes'][index]
 
     @debugger
-    def get_hole_mm_min(self):
-        return self.internal_data['hole_mm_min']
+    def get_hole_interval(self, index):
+        return self.internal_data['intervals'][index]
 
     @debugger
-    def set_hole_in_inc(self, val):
-        self.internal_data['hole_in_inc'] = self.validate_type(val, float)
-    
-    @debugger
-    def set_hole_in_max(self, val):
-        self.internal_data['hole_in_max'] = self.validate_type(val, float)
-    
-    @debugger
-    def set_hole_in_min(self, val):
-        self.internal_data['hole_in_min'] = self.validate_type(val, float)
-    
-    @debugger
-    def set_hole_mm_inc(self, val):
-        self.internal_data['hole_mm_inc'] = self.validate_type(val, float)
-    
-    @debugger
-    def set_hole_mm_max(self, val):
-        self.internal_data['hole_mm_max'] = self.validate_type(val, float)
+    def get_hole_note(self, index):
+        return self.internal_data['notes'][index]
 
     @debugger
-    def set_hole_mm_min(self, val):
-        self.internal_data['hole_mm_min'] = self.validate_type(val, float)
+    def get_hole_freq(self, index):
+        return self.internal_data['freqs'][index]
+
+    @debugger
+    def get_hole_location(self, index):
+        return self.internal_data['locations'][index]
+
+    @debugger
+    def get_hole_diff(self, index):
+        return self.internal_data['diffs'][index]
+
+    @debugger
+    def get_hole_cutoff(self, index):
+        return self.internal_data['cutoffs'][index]
+
+    @debugger
+    def set_hole_size(self, index, val):
+        self.internal_data['hole_sizes'][index] = self.validate_type(val, float)
+
+    @debugger
+    def set_hole_interval(self, index, val):
+        self.internal_data['intervals'][index] = self.validate_type(val, int)
+
+    @debugger
+    def set_hole_note(self, index, val):
+        self.internal_data['notes'][index] = self.validate_type(val, str)
+
+    @debugger
+    def set_hole_freq(self, index, val):
+        self.internal_data['freqs'][index] = self.validate_type(val, float)
+
+    @debugger
+    def set_hole_location(self, index, val):
+        self.internal_data['locations'][index] = self.validate_type(val, float)
+
+    @debugger
+    def set_hole_diff(self, index, val):
+        self.internal_data['diffs'][index] = self.validate_type(val, float)
+
+    @debugger
+    def set_hole_cutoff(self, index, val):
+        self.internal_data['cutoffs'][index] = self.validate_type(val, float)
+
+    @debugger
+    def clear_hole_data(self):
+        for x in range(12):
+            self.set_hole_size(x, 0.0)
+            self.set_hole_note(x, '')
+            self.set_hole_freq(x, 0.0)
+            self.set_hole_location(x, 0.0)
+            self.set_hole_diff(x, 0.0)
+            self.set_hole_cutoff(x, 0.0)
 
     # Utilities
     @debugger
@@ -370,8 +433,5 @@ class DataStore:
             return var
 
     def print_data(self):
-        data = self.get_state()
-        print(data)
-
-
+        pprint.pprint(self.internal_data)
 

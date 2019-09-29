@@ -14,23 +14,11 @@ class LineWidgit(tkinter.Frame):
     itself.
     '''
 
-    def __init__(self, 
-                    parent,
-                    lineno,
-                    inter=0,
-                    note="",
-                    freq=0.0,
-                    hole_size=0.0,
-                    location=0.0,
-                    cutoff=0.0,
-                    diff=0.0,
-                    units=False,
-                    fracs=True):
-        self.logger = Logger(self, Logger.DEBUG)
+    def __init__(self, parent,lineno):
+        self.logger = Logger(self, Logger.ERROR)
         self.logger.debug("constructor")
         tkinter.Frame.__init__(self, parent)
 
-        #self.configuration = Configuration.get_instance()
         self.data_store = DataStore.get_instance()
         self.index = lineno
 
@@ -39,17 +27,13 @@ class LineWidgit(tkinter.Frame):
         self.line_name.grid(row=lineno+1, column=0, sticky=tkinter.W)
 
         self.inter_ctl = tkinter.Entry(self, width=5, validate="focusout")#, validatecommand=self.numHolesCommand)
-        self.inter_ctl.delete(0, tkinter.END)
-        self.inter_ctl.insert(0, str(inter))
         self.inter_ctl.grid(row=lineno+1, column=1)
 
         self.note_ctl_txt = tkinter.StringVar()
-        self.note_ctl_txt.set(str(note))
         self.note_ctl = tkinter.Label(self, textvariable=self.note_ctl_txt, width=12)
         self.note_ctl.grid(row=lineno+1, column=2)
 
         self.freq_ctl_txt = tkinter.StringVar()
-        self.freq_ctl_txt.set("%s Hz"%(str(freq)))
         self.freq_ctl = tkinter.Label(self, textvariable=self.freq_ctl_txt, width=12)
         self.freq_ctl.grid(row=lineno+1, column=3)
 
@@ -57,74 +41,46 @@ class LineWidgit(tkinter.Frame):
         self.hole_ctl.config(padx=25)
         self.hole_ctl.grid(row=lineno+1, column=4)
 
-        # TODO: 
-        #   1, Move these default values to the data-store and allow them to be configured
-        #      via a configuration file.
-        # data = self.hole_ctl.get_state() # get a copy of the state
-        # data['units'] = units
-        # data['fracs'] = fracs
-        # data['value'] = hole_size
-        # if units:
-        #     data['inc'] = self.data_store.get_hole_mm_inc()
-        #     data['min'] = self.data_store.get_hole_mm_min()
-        #     data['max'] = self.data_store.get_hole_mm_max()
-        # else:
-        #     data['inc'] = self.data_store.get_hole_in_inc()
-        #     data['min'] = self.data_store.get_hole_in_min()
-        #     data['max'] = self.data_store.get_hole_in_max()
-        # self.hole_ctl.set_state(data)
-
         self.locat_ctl_txt = tkinter.StringVar()
-        self.locat_ctl_txt.set(str(location))
         self.locat_ctl = tkinter.Label(self, textvariable=self.locat_ctl_txt, width=12)
         self.locat_ctl.grid(row=lineno+1, column=5)
 
         self.diff_ctl_txt = tkinter.StringVar()
-        self.diff_ctl_txt.set(str(diff))
         self.diff_ctl = tkinter.Label(self, textvariable=self.diff_ctl_txt, width=12)
         self.diff_ctl.grid(row=lineno+1, column=6)
 
         self.cutoff_ctl_txt = tkinter.StringVar()
-        self.cutoff_ctl_txt.set(str(cutoff))
         self.cutoff_ctl = tkinter.Label(self, textvariable=self.cutoff_ctl_txt, width=12)
         self.cutoff_ctl.grid(row=lineno+1, column=7)
 
-        #self.get_data()
+        self.set_state()
+
+        self.logger.debug("end constructor")
 
     @debugger
     def set_state(self):
         '''
         Place the data from the data_store into the GUI.
         '''
-        line = self.data_store.get_line(self.index)
         self.inter_ctl.delete(0, tkinter.END)
-        self.inter_ctl.insert(0, str(line['interval']))
-        self.note_ctl_txt.set(str(line['note'])) # Label
-        self.freq_ctl_txt.set("%s Hz"%(str(line['freq'])))
-        self.locat_ctl_txt.set(str(line['location'])) # Label
-        self.diff_ctl_txt.set(str(line['diff'])) # Label
-        self.cutoff_ctl_txt.set(str(line['cutoff'])) # Label
-        #self.hole_ctl.set_state(line['hole_size'])
-        self.hole_ctl.set_state()
-
-        #self.hole_ctl.set_startval(data['hole']) # HoleWidgit
-        #self.hole_ctl.set_state(data['hole']) # HoleWidgit
+        self.inter_ctl.insert(0, str(self.data_store.get_hole_interval(self.index)))
+        self.note_ctl_txt.set(str(self.data_store.get_hole_note(self.index))) # Label
+        self.freq_ctl_txt.set("%s Hz"%(str(self.data_store.get_hole_freq(self.index))))
+        self.locat_ctl_txt.set(str(self.data_store.get_hole_location(self.index))) # Label
+        self.diff_ctl_txt.set(str(self.data_store.get_hole_diff(self.index))) # Label
+        self.cutoff_ctl_txt.set(str(self.data_store.get_hole_cutoff(self.index))) # Label
 
     @debugger
     def get_state(self):
         '''
         Get the data out of the display and place it in the data_store.
         '''
-        line = self.data_store.get_line(self.index)
-        line['interval'] = int(self.inter_ctl.get())
-        line['note'] = self.note_ctl_txt.get() # str
-        line['freq'] = float(self.freq_ctl_txt.get().split()[0])
-        #line['hole_size'] = float(self.hole_ctl.get_state())
-        line['location'] = float(self.locat_ctl_txt.get())
-        line['diff'] = float(self.diff_ctl_txt.get())
-        line['cutoff'] = float(self.cutoff_ctl_txt.get())
-        self.hole_ctl.get_state()
-        line = self.data_store.set_line(self.index, line)
+        self.data_store.set_hole_interval(self.index, int(self.inter_ctl.get()))
+        self.data_store.set_hole_note(self.index, self.note_ctl_txt.get()) # str
+        self.data_store.set_hole_freq(self.index, float(self.freq_ctl_txt.get().split()[0]))
+        self.data_store.set_hole_location(self.index, float(self.locat_ctl_txt.get()))
+        self.data_store.set_hole_diff(self.index, float(self.diff_ctl_txt.get()))
+        self.data_store.set_hole_cutoff(self.index, float(self.cutoff_ctl_txt.get()))
 
     @debugger
     def print_state(self):
