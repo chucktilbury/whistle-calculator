@@ -2,7 +2,7 @@
 TARGET	=	whistlecalc
 DEPS	=	main.py \
 			main_frame.py \
-			calc.py \
+			calculate.py \
 			line_widgit.py \
 			hole_widgit.py \
 			data_store.py \

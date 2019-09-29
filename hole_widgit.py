@@ -4,7 +4,7 @@ import sys, math
 
 from data_store import DataStore
 #from configuration import Configuration
-from utility import Logger, debugger, register_event
+from utility import Logger, debugger, register_event, raise_event
 from exception import AppError, AppFatalError
 import utility
 
@@ -104,12 +104,13 @@ class HoleSizeWidgit(tkinter.Frame):
 
         self.data_store.set_hole_size(self.index, siz)
         self.update_val() # update the GUI
+        raise_event("CALCULATE_EVENT")
 
     @debugger
     def decr_command(self):
         siz = self.data_store.get_hole_size(self.index)
         siz = siz - self.data_store.get_hole_inc()
-        
+
         if siz < self.data_store.get_hole_min():
             siz = self.data_store.get_hole_min()
         elif siz > self.data_store.get_hole_max():
@@ -117,6 +118,7 @@ class HoleSizeWidgit(tkinter.Frame):
 
         self.data_store.set_hole_size(self.index, siz)
         self.update_val() # update the GUI
+        raise_event("CALCULATE_EVENT")
 
     def print_state(self):
         self.logger.msg(str(self.get_state()))

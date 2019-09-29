@@ -42,41 +42,6 @@ class LowerFrame(tkinter.Frame):
 
         self.logger.debug("end constructor")
 
-    # @debugger
-    # def create_frame(self):
-    #     try:
-
-    #         self.line_widgits = []
-    #         self.logger.debug("create %d holes"%(self.data_store.get_number_holes()))
-    #         for n in range(self.data_store.get_number_holes()):
-                
-    #             if self.data_store.get_hole_size(n) == 0.0:
-    #                 self.data_store.set_hole_size(n, self.data_store.get_hole_min())
-
-    #             # constructed with the minimum data to do a calculation.
-    #             lw = LineWidgit(self.master, n)
-    #             lw.grid(row=n+1, column=0, columnspan=8, sticky=tkinter.W)
-    #             self.line_widgits.append(lw)
-
-    #         self.update_notes()            
-    #         raise_event("CALCULATE_EVENT")
-
-    #     except Exception as ex:
-    #         print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
-        
-    #     self.logger.debug("%d holes created"%(len(self.line_widgits)))
-        
-
-    # @debugger
-    # def destroy_frame(self):
-    #     for line in self.line_widgits:
-    #         line.hole_ctl.destroy()
-    #         line.destroy()
-    #     # for s in self.master.grid_slaves():
-    #     #     s.destroy()
-    #     del self.line_widgits
-    #     self.line_widgits = []
-
     @debugger
     def update_frame(self):
         # hade all of the lines
@@ -114,3 +79,37 @@ class LowerFrame(tkinter.Frame):
             line.set_state()
             #raise_event("CALCULATE_EVENT")
 
+    # @debugger
+    # def create_frame(self):
+    #     try:
+
+    #         self.line_widgits = []
+    #         self.logger.debug("create %d holes"%(self.data_store.get_number_holes()))
+    #         for n in range(self.data_store.get_number_holes()):
+                
+    #             if self.data_store.get_hole_size(n) == 0.0:
+    #                 self.data_store.set_hole_size(n, self.data_store.get_hole_min())
+
+    #             # constructed with the minimum data to do a calculation.
+    #             lw = LineWidgit(self.master, n)
+    #             lw.grid(row=n+1, column=0, columnspan=8, sticky=tkinter.W)
+    #             self.line_widgits.append(lw)
+
+    #         self.update_notes()            
+    #         raise_event("CALCULATE_EVENT")
+
+    #     except Exception as ex:
+    #         print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
+        
+    #     self.logger.debug("%d holes created"%(len(self.line_widgits)))
+        
+
+    # @debugger
+    # def destroy_frame(self):
+    #     for line in self.line_widgits:
+    #         line.hole_ctl.destroy()
+    #         line.destroy()
+    #     # for s in self.master.grid_slaves():
+    #     #     s.destroy()
+    #     del self.line_widgits
+    #     self.line_widgits = []

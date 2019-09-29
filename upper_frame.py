@@ -238,7 +238,6 @@ class UpperFrame(tkinter.Frame):
             self.logger.debug("ignore")
 
 
-
     @debugger
     def measureUnitsCallback(self, event):
         if self.measureUnitsOpt.current() == 0:
@@ -258,7 +257,6 @@ class UpperFrame(tkinter.Frame):
             self.logger.debug("ignore")
         
 
-
     @debugger
     def bellSelectCallback(self, event):
         '''
@@ -274,15 +272,10 @@ class UpperFrame(tkinter.Frame):
 
 
     @debugger
-    def printButtonCommand(self):
-        self.printButton.focus_set()
-
-
-    @debugger
     def refreshButtonCommand(self):
         self.refreshButton.focus_set()
         self.get_state()
-        # TODO: Refresh the bottom, too
+        raise_event('UPDATE_LINES_EVENT')
 
 
     @debugger
@@ -294,3 +287,7 @@ class UpperFrame(tkinter.Frame):
     def setOtherCommand(self):
         self.setOtherButton.focus_set()
 
+
+    @debugger
+    def printButtonCommand(self):
+        self.printButton.focus_set()

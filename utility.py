@@ -2,7 +2,6 @@
 import sys, math, time
 import traceback
 from exception import AppError
-from data_store import DataStore
 
 class Logger(object):
     '''
@@ -94,16 +93,18 @@ def mm_to_in(val):
     Simply convert the value given from MM to inches and round to the increment
     '''
     logger.debug(sys._getframe().f_code.co_name)
-    data = DataStore.get_instance()
-    return rnd(val*0.03937, data.internal_data['home_in_inc'])
+    from data_store import DataStore as ds # avoid a circular dependency
+    data = ds.get_instance()
+    return rnd(val/25.4, data.internal_data['home_in_inc'])
 
 def in_to_mm(val):
     '''
     Simply convert the value given from inches to MM and round to the increment
     '''
     logger.debug(sys._getframe().f_code.co_name)
-    data = DataStore.get_instance()
-    return rnd(val/0.03937, data.internal_data['hole_mm_inc'])
+    from data_store import DataStore as ds # avoid a circular dependency
+    data = ds.get_instance()
+    return rnd(val*25.4, data.internal_data['hole_mm_inc'])
 
 def reduce(val):
     '''
