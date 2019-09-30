@@ -2,7 +2,7 @@ import math, sys
 
 from data_store import DataStore
 #from configuration import Configuration
-from utility import Logger, debugger, register_event
+from utility import Logger, debugger, register_event, raise_event
 
 # Speed of Sound = 345 m/s = 1130 ft/s = 770 miles/hr
 
@@ -30,4 +30,4 @@ class Calculator:
 
     @debugger
     def do_calc(self):
-        pass
+        raise_event("UPDATE_LINES_EVENT")

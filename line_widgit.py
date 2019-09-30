@@ -6,6 +6,7 @@ from data_store import DataStore
 #from configuration import Configuration
 from hole_widgit import HoleSizeWidgit
 from utility import Logger, debugger
+import utility
 
 class LineWidgit(tkinter.Frame):
     '''
@@ -69,6 +70,7 @@ class LineWidgit(tkinter.Frame):
         self.locat_ctl_txt.set(str(self.data_store.get_hole_location(self.index))) # Label
         self.diff_ctl_txt.set(str(self.data_store.get_hole_diff(self.index))) # Label
         self.cutoff_ctl_txt.set(str(self.data_store.get_hole_cutoff(self.index))) # Label
+        self.hole_ctl.set_state()
 
     @debugger
     def get_state(self):
@@ -81,16 +83,26 @@ class LineWidgit(tkinter.Frame):
         self.data_store.set_hole_location(self.index, float(self.locat_ctl_txt.get()))
         self.data_store.set_hole_diff(self.index, float(self.diff_ctl_txt.get()))
         self.data_store.set_hole_cutoff(self.index, float(self.cutoff_ctl_txt.get()))
+        self.hole_ctl.get_state()
 
     @debugger
     def print_state(self):
         self.logger.msg(str(self.get_state()))
 
     @debugger
-    def convert_units(self, units):
+    def change_units(self):
         '''
-        Convert from one inch or metric units to the other
+        When this is called, it is assumed that the datastore and the GUI need to have
+        the vaules updated to reflect the new units.
         '''
-        #self.hole_ctl.change_units(units)
-        # TODO: change the other measurements into the new units.
-
+        if self.data_store.get_units():
+            self.data_store.set_hole_size(self.index, utility.in_to_mm(self.data_store.get_hole_size(self.index)))
+            self.data_store.set_hole_location(self.index, utility.in_to_mm(self.data_store.get_hole_location(self.index)))
+            self.data_store.set_hole_diff(self.index, utility.in_to_mm(self.data_store.get_hole_diff(self.index)))
+            self.data_store.set_hole_cutoff(self.index, utility.in_to_mm(self.data_store.get_hole_cutoff(self.index)))
+        else:
+            self.data_store.set_hole_size(self.index, utility.mm_to_in(self.data_store.get_hole_size(self.index)))
+            self.data_store.set_hole_location(self.index, utility.mm_to_in(self.data_store.get_hole_location(self.index)))
+            self.data_store.set_hole_diff(self.index, utility.mm_to_in(self.data_store.get_hole_diff(self.index)))
+            self.data_store.set_hole_cutoff(self.index, utility.mm_to_in(self.data_store.get_hole_cutoff(self.index)))
+        self.set_state()

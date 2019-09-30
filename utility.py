@@ -1,5 +1,5 @@
 
-import sys, math, time
+import sys, math, time, pprint
 import traceback
 from exception import AppError
 
@@ -85,26 +85,32 @@ class Logger(object):
             t = time.strftime("[%Y%m%d %H:%M:%S]")
             self.stream.write("%s %s: %s.%s(): %s\n"%(t, "DEBUG", self.name, name, args))
 
-logger = Logger("Utility", Logger.ERROR)
+logger = Logger("Utility", Logger.INFO)
 
 # Utility methods
-def mm_to_in(val):
+def mm_to_in(val, round=False):
     '''
     Simply convert the value given from MM to inches and round to the increment
     '''
     logger.debug(sys._getframe().f_code.co_name)
     from data_store import DataStore as ds # avoid a circular dependency
     data = ds.get_instance()
-    return rnd(val/25.4, data.internal_data['home_in_inc'])
+    if round:
+        return rnd(val/25.4, data.internal_data['hole_in_inc'])
+    else:
+        return val/25.4
 
-def in_to_mm(val):
+def in_to_mm(val, round=False):
     '''
     Simply convert the value given from inches to MM and round to the increment
     '''
     logger.debug(sys._getframe().f_code.co_name)
     from data_store import DataStore as ds # avoid a circular dependency
     data = ds.get_instance()
-    return rnd(val*25.4, data.internal_data['hole_mm_inc'])
+    if round:
+        return rnd(val*25.4, data.internal_data['hole_mm_inc'])
+    else:
+        return val*25.4
 
 def reduce(val):
     '''
@@ -149,15 +155,19 @@ def rnd(num, factor):
     Find the closest multiple of factor for num.
     '''
     if factor == 0.0:
+        logger.debug("tring to factor zero")
         return num
 
-    logger.debug(sys._getframe().f_code.co_name)
+    logger.debug("%s: num= %f, factor= %f"%(sys._getframe().f_code.co_name, num, factor))
     a = math.ceil(num/factor)*factor
     b = math.floor(num/factor)*factor
+    logger.debug("a = %f, b = %f"%(a, b))
     # take the closest one
-    if abs(num - a) < abs(num - b):
+    if abs(num - a) > abs(num - b):
+        logger.debug("return: %f"%(a))
         return a
     else:
+        logger.debug("return: %f"%(b))
         return b
 
 '''
@@ -197,6 +207,7 @@ def register_event(name, callback):
                 name, 
                 callback.__self__.__class__.__name__, 
                 callback.__name__))
+
     if not name in __event_list__:
         __event_list__[name] = []
     __event_list__[name].append(callback)
@@ -214,6 +225,12 @@ def raise_event(name, *args):
             else:
                 cb()
     logger.debug("%s: %s"%(sys._getframe().f_code.co_name, "returning"))
+
+def dump_events():
+    for item in __event_list__:
+        print("%s:"%item)
+        for cb in __event_list__[item]:
+            print("\t%s.%s"%(cb.__self__.__class__.__name__, cb.__name__))
 
 def base_decorator(decorator):
     '''This decorator can be used to turn simple functions

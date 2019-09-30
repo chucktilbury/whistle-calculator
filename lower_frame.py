@@ -21,6 +21,7 @@ class LowerFrame(tkinter.Frame):
         register_event('UPDATE_LOWER_FRAME_EVENT', self.update_frame)
         register_event('UPDATE_LINES_EVENT', self.set_state)
         register_event('UPDATE_NOTES_EVENT', self.update_notes)
+        register_event('CHANGE_UNITS_EVENT', self.change_units)
 
         tkinter.Label(self.master, width=12, text="Hole").grid(row=0, column=0, sticky=tkinter.W)
         tkinter.Label(self.master, width=5, text="Interval").grid(row=0, column=1, sticky=tkinter.W)
@@ -44,7 +45,7 @@ class LowerFrame(tkinter.Frame):
 
     @debugger
     def update_frame(self):
-        # hade all of the lines
+        # hide all of the lines
         for idx in range(12):
             self.line_widgits[idx].grid_forget()
 
@@ -52,6 +53,8 @@ class LowerFrame(tkinter.Frame):
         for idx in range(self.data_store.get_number_holes()):
             self.line_widgits[idx].grid(row=idx+1, column=0, columnspan=8, sticky=tkinter.W)
             self.line_widgits[idx].set_state()
+
+        self.update_notes()
         
     @debugger
     def set_state(self):
@@ -77,39 +80,15 @@ class LowerFrame(tkinter.Frame):
             self.data_store.set_hole_freq(index, self.data_store.note_table[sel]["frequency"])
             self.data_store.set_hole_note(index, self.data_store.note_table[sel]["note"])
             line.set_state()
-            #raise_event("CALCULATE_EVENT")
+        raise_event("CALCULATE_EVENT")
 
-    # @debugger
-    # def create_frame(self):
-    #     try:
 
-    #         self.line_widgits = []
-    #         self.logger.debug("create %d holes"%(self.data_store.get_number_holes()))
-    #         for n in range(self.data_store.get_number_holes()):
-                
-    #             if self.data_store.get_hole_size(n) == 0.0:
-    #                 self.data_store.set_hole_size(n, self.data_store.get_hole_min())
-
-    #             # constructed with the minimum data to do a calculation.
-    #             lw = LineWidgit(self.master, n)
-    #             lw.grid(row=n+1, column=0, columnspan=8, sticky=tkinter.W)
-    #             self.line_widgits.append(lw)
-
-    #         self.update_notes()            
-    #         raise_event("CALCULATE_EVENT")
-
-    #     except Exception as ex:
-    #         print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
-        
-    #     self.logger.debug("%d holes created"%(len(self.line_widgits)))
-        
-
-    # @debugger
-    # def destroy_frame(self):
-    #     for line in self.line_widgits:
-    #         line.hole_ctl.destroy()
-    #         line.destroy()
-    #     # for s in self.master.grid_slaves():
-    #     #     s.destroy()
-    #     del self.line_widgits
-    #     self.line_widgits = []
+    @debugger
+    def change_units(self):
+        '''
+        When this is called, it is assumed that the data_store has the wrong 
+        units. The values are converted to the current units and the GUI
+        is updated.
+        '''
+        for line in self.line_widgits:
+            line.change_units()

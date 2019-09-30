@@ -16,7 +16,7 @@ class HoleSizeWidgit(tkinter.Frame):
         the value according to the state. It has up and down buttons used to
         increment or decrement the value. 
         '''
-        self.logger = Logger(self, Logger.ERROR)
+        self.logger = Logger(self, Logger.INFO)
         self.logger.debug("constructor")
         self.index = line
 
@@ -119,6 +119,7 @@ class HoleSizeWidgit(tkinter.Frame):
         self.data_store.set_hole_size(self.index, siz)
         self.update_val() # update the GUI
         raise_event("CALCULATE_EVENT")
+
 
     def print_state(self):
         self.logger.msg(str(self.get_state()))

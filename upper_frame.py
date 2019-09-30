@@ -6,6 +6,7 @@ from tkinter import ttk
 from data_store import DataStore
 #from configuration import Configuration
 from utility import Logger, debugger, raise_event
+import utility
 
 class UpperFrame(tkinter.Frame):
     '''
@@ -224,7 +225,6 @@ class UpperFrame(tkinter.Frame):
 
     @debugger
     def displayFormatCallback(self, event):
-        #print(self.displayFormatOpt.current(),self.data_store.get_disp_frac())
         if self.displayFormatOpt.current() == 0:
             val = False
         else:
@@ -246,12 +246,13 @@ class UpperFrame(tkinter.Frame):
             val = True
 
         if self.data_store.get_units() != val:
-            if self.measureUnitsOpt.current() == 0:
+            if self.measureUnitsOpt.current() == 1:
                 self.displayFormatOpt.config(state=tkinter.DISABLED)
             else:
                 self.displayFormatOpt.config(state="readonly")
+                
             self.data_store.set_units(val)
-            raise_event("CHANGE_UNITS_EVENT")
+            self.change_units()
             self.logger.debug("current units set to: %s"%(str(self.data_store.get_units())))
         else:
             self.logger.debug("ignore")
@@ -291,3 +292,23 @@ class UpperFrame(tkinter.Frame):
     @debugger
     def printButtonCommand(self):
         self.printButton.focus_set()
+
+    @debugger
+    def change_units(self):
+        '''
+        When this is called, the assumption is that the GUI and the 
+        data_store have the wrong units. This function takes what ever 
+        is in the data_sore and converts if to the units that it finds 
+        there.  Then it updates the GUI.
+        '''
+        if self.data_store.get_units(): # true of units are mm
+            self.data_store.set_inside_dia(utility.in_to_mm(self.data_store.get_inside_dia()))
+            self.data_store.set_wall_thickness(utility.in_to_mm(self.data_store.get_wall_thickness()))
+        else:
+            self.data_store.set_inside_dia(utility.mm_to_in(self.data_store.get_inside_dia()))
+            self.data_store.set_wall_thickness(utility.mm_to_in(self.data_store.get_wall_thickness()))
+
+        self.set_state()
+        # Cause the other frames to update
+        raise_event("CHANGE_UNITS_EVENT")
+        raise_event('CALCULATE_EVENT')

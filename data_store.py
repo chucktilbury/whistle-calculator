@@ -35,7 +35,7 @@ class DataStore:
             DataStore.__instance = self
 
         # Continue with init exactly once.
-        self.logger = Logger(self, Logger.DEBUG)
+        self.logger = Logger(self, Logger.ERROR)
         self.logger.debug("enter constructor")
 
         self.note_table = [

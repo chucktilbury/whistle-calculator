@@ -5,7 +5,7 @@ import tkinter
 import sys, os
 
 from data_store import DataStore
-from calc import Calculator
+from calculate import Calculator
 from lower_frame import LowerFrame
 from upper_frame import UpperFrame
 from utility import Logger, debugger, raise_event
@@ -113,6 +113,7 @@ class MainFrame(tkinter.Frame):
     @debugger
     def helpCommand(self):
         self.data.print_data()
+        utility.dump_events()
         #print("display format: "+ self.displayFormatOpt.get())
         #print("measure units: "+ self.measureUnitsOpt.get())
         #print("bellnote: %s (%d)"%(str(self.bellNoteEntry.get()), self.bellNoteEntry.current()))
