@@ -17,7 +17,7 @@ class Logger(object):
     STDERR = 0
     STDOUT = 1
 
-    def __init__(self, name, level=DEBUG, stream=STDOUT):
+    def __init__(self, name, level=DEBUG):
 
         self.dbg = 0
         self.inf = 1
@@ -34,10 +34,10 @@ class Logger(object):
         self.level = []
         self.level.insert(0, level)
 
-        if stream == self.STDERR:
-            self.stream = sys.stderr
-        else:
-            self.stream = sys.stdout
+        #if stream == self.STDERR:
+        self.stream = sys.stderr
+        #else:
+        #self.stream = sys.stdout
 
     def fmt(self, args, lev):
         t = time.strftime("[%Y%m%d %H:%M:%S]")
@@ -268,7 +268,7 @@ def debugger(func):
         try:
             args[0].logger.debugger(func.__name__, "-- enter")
             retv = func(*args, **kwargs)
-            args[0].logger.debugger(func.__name__, "-- leave")
+            args[0].logger.debugger(func.__name__, "-- returning: %s"%(str(retv)))
             return retv
         except Exception as ex:
             print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))

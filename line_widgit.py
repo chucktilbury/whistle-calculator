@@ -67,9 +67,9 @@ class LineWidgit(tkinter.Frame):
         self.inter_ctl.insert(0, str(self.data_store.get_hole_interval(self.index)))
         self.note_ctl_txt.set(str(self.data_store.get_hole_note(self.index))) # Label
         self.freq_ctl_txt.set("%s Hz"%(str(self.data_store.get_hole_freq(self.index))))
-        self.locat_ctl_txt.set(str(self.data_store.get_hole_location(self.index))) # Label
-        self.diff_ctl_txt.set(str(self.data_store.get_hole_diff(self.index))) # Label
-        self.cutoff_ctl_txt.set(str(self.data_store.get_hole_cutoff(self.index))) # Label
+        self.locat_ctl_txt.set("%0.4f"%self.data_store.get_hole_location(self.index)) # Label
+        self.diff_ctl_txt.set("%0.4f"%self.data_store.get_hole_diff(self.index)) # Label
+        self.cutoff_ctl_txt.set("%0.4f"%self.data_store.get_hole_cutoff(self.index)) # Label
         self.hole_ctl.set_state()
 
     @debugger

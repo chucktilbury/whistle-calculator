@@ -86,10 +86,10 @@ class HoleSizeWidgit(tkinter.Frame):
             if self.data_store.get_disp_frac():
                 self.entry.insert(0, "%s"%(utility.reduce(siz)))
             else:
-                self.entry.insert(0, "%0.3f"%(siz))
+                self.entry.insert(0, "%0.4f"%(siz))
         else:
             self.logger.debug("updating mm value to %s"%(str(siz)))
-            self.entry.insert(0, "%0.3f"%(siz))
+            self.entry.insert(0, "%0.4f"%(siz))
 
     # event handlers
     @debugger
