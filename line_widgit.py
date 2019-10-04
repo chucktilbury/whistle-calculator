@@ -5,7 +5,7 @@ import sys
 from data_store import DataStore
 #from configuration import Configuration
 from hole_widgit import HoleSizeWidgit
-from utility import Logger, debugger
+from utility import Logger, debugger, raise_event
 import utility
 
 class LineWidgit(tkinter.Frame):
@@ -16,7 +16,7 @@ class LineWidgit(tkinter.Frame):
     '''
 
     def __init__(self, parent,lineno):
-        self.logger = Logger(self, Logger.ERROR)
+        self.logger = Logger(self, Logger.DEBUG)
         self.logger.debug("constructor")
         tkinter.Frame.__init__(self, parent)
 
@@ -27,7 +27,9 @@ class LineWidgit(tkinter.Frame):
         self.line_name = tkinter.Label(self, text=self.name, width=12)
         self.line_name.grid(row=lineno+1, column=0, sticky=tkinter.W)
 
-        self.inter_ctl = tkinter.Entry(self, width=5, validate="focusout")#, validatecommand=self.numHolesCommand)
+        self.inter_ctl = tkinter.Entry(self, width=5, validate="focusout", validatecommand=self.change_interval)
+        self.inter_ctl.bind('<Return>', self.change_interval)
+        self.inter_ctl.bind('<Tab>', self.change_interval)
         self.inter_ctl.grid(row=lineno+1, column=1)
 
         self.note_ctl_txt = tkinter.StringVar()
@@ -67,7 +69,7 @@ class LineWidgit(tkinter.Frame):
         self.inter_ctl.insert(0, str(self.data_store.get_hole_interval(self.index)))
         self.note_ctl_txt.set(str(self.data_store.get_hole_note(self.index))) # Label
         self.freq_ctl_txt.set("%s Hz"%(str(self.data_store.get_hole_freq(self.index))))
-        self.locat_ctl_txt.set("%0.4f"%self.data_store.get_hole_location(self.index)) # Label
+        self.locat_ctl_txt.set("%0.4f"%self.data_store.get_hole_xloc(self.index)) # Label
         self.diff_ctl_txt.set("%0.4f"%self.data_store.get_hole_diff(self.index)) # Label
         self.cutoff_ctl_txt.set("%0.4f"%self.data_store.get_hole_cutoff(self.index)) # Label
         self.hole_ctl.set_state()
@@ -106,3 +108,19 @@ class LineWidgit(tkinter.Frame):
             self.data_store.set_hole_diff(self.index, utility.mm_to_in(self.data_store.get_hole_diff(self.index)))
             self.data_store.set_hole_cutoff(self.index, utility.mm_to_in(self.data_store.get_hole_cutoff(self.index)))
         self.set_state()
+
+    @debugger
+    def change_interval(self, event=None):
+        try:
+            val = int(self.inter_ctl.get())
+            oldval = self.data_store.get_hole_interval(self.index)
+            if val != oldval:
+                self.data_store.set_hole_interval(self.index, val)
+                self.logger.debug("change interval from %d to %d"%(oldval, val))
+                raise_event("UPDATE_NOTES_EVENT")
+            else:
+                self.logger.debug("ignore")
+        except IndexError:
+            pass  # always ignore
+
+        return True

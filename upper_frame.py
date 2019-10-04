@@ -24,7 +24,9 @@ class UpperFrame(tkinter.Frame):
 
         # Fill in the upper frame
         tkinter.Label(self.master, text="Title").grid(row=0, column=0, sticky=tkinter.E)
-        self.titleEntry = tkinter.Entry(self.master, width=40)
+        self.titleEntry = tkinter.Entry(self.master, width=40, validate="focusout", validatecommand=self.setTitleCommand)
+        self.titleEntry.bind('<Return>', self.setTitleCommand)
+        self.titleEntry.bind('<Tab>', self.setTitleCommand)
         self.titleEntry.grid(row=0, column=1, columnspan=3, padx=9, pady=4)
 
         tkinter.Label(self.master, text="Inside Diameter").grid(row=1, column=0, sticky=tkinter.E, pady=4)
@@ -141,12 +143,12 @@ class UpperFrame(tkinter.Frame):
         self.bellFreqEntry.config(state=tkinter.NORMAL)
         self.bellFreqEntry.delete(0, tkinter.END)
         self.bellFreqEntry.insert(0, str(self.data_store.get_bell_freq()))
-        self.bellFreqEntry.config(state=tkinter.DISABLED)
+        self.bellFreqEntry.config(state="readonly")
 
         self.embouchureAreaEntry.config(state=tkinter.NORMAL)
         self.embouchureAreaEntry.delete(0, tkinter.END)
         self.embouchureAreaEntry.insert(0, str(self.data_store.get_embouchure_area()))
-        self.embouchureAreaEntry.config(state=tkinter.DISABLED)
+        self.embouchureAreaEntry.config(state="readonly")
 
 
     @debugger
@@ -266,11 +268,12 @@ class UpperFrame(tkinter.Frame):
         val = self.bellNoteCombo.current()
         if val != self.data_store.get_bell_note_select():
             self.data_store.set_bell_note_select(val)
-            self.logger.debug("current bell selection set to: %d"%(self.data_store.get_bell_note_select()))
+            self.data_store.set_bell_freq(self.data_store.note_table[val]['frequency'])
+            self.logger.debug("current bell selection set to: %d: %f"%(self.data_store.get_bell_note_select(), self.data_store.get_bell_freq()))
             raise_event("UPDATE_NOTES_EVENT")
         else:
             self.logger.debug("ignore")
-
+        self.set_state()
 
     @debugger
     def refreshButtonCommand(self):
@@ -312,3 +315,16 @@ class UpperFrame(tkinter.Frame):
         # Cause the other frames to update
         raise_event("CHANGE_UNITS_EVENT")
         raise_event('CALCULATE_EVENT')
+
+    @debugger
+    def setTitleCommand(self, event=None):
+        try:
+            title = self.titleEntry.get()
+            old_title = self.data_store.get_title()
+            if title != old_title:
+                self.data_store.set_title(title)
+                self.logger.debug("title set to: \"%s\""%(str(self.data_store.get_title())))
+            else:
+                self.logger.debug("ignore")
+        except IndexError:
+            pass # always ignore

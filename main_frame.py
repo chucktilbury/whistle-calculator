@@ -12,6 +12,7 @@ from utility import Logger, debugger, raise_event
 from exception import AppFatalError
 #from configuration import Configuration
 import utility 
+import dialogs
 
 class MainFrame(tkinter.Frame):
     '''
@@ -55,6 +56,7 @@ class MainFrame(tkinter.Frame):
         editMenu = tkinter.Menu(menu, tearoff=0)
         editMenu.add_command(label="Help", command=self.helpCommand)
         editMenu.add_command(label="About", command=self.aboutCommand)
+        editMenu.add_command(label="Dump", command=self.dumpInternalData)
         menu.add_cascade(label="Help", menu=editMenu)
 
         tkinter.Label(self.master, text="Tilbury Woodwinds Whistle Calculator",
@@ -87,6 +89,8 @@ class MainFrame(tkinter.Frame):
         if f != '':
             self.logger.debug("loading file: %s"%(f))
             self.data.load(f)
+            self.data.set_file_name(f)
+            raise_event("UPDATE_LOWER_FRAME_EVENT")
             self.set_state()
         else:
             self.logger.debug("cancel")
@@ -94,7 +98,7 @@ class MainFrame(tkinter.Frame):
     @debugger
     def saveCommand(self):
         d = filedialog.askdirectory(initialdir=os.getcwd(), mustexist=True)
-        p = os.path.join(d, self.current_file_name)
+        p = os.path.join(d, self.data.get_file_name())
         if p != '':
             print("saving file = " + p )
             self.data.save(p)
@@ -107,18 +111,22 @@ class MainFrame(tkinter.Frame):
         if f != '':
             print("file save as = " + f)
             self.data.save(f)
+            self.data.set_file_name(f)
         else:
             self.logger.debug("cancel")
-
-    @debugger
-    def helpCommand(self):
-        self.data.print_data()
-        utility.dump_events()
-        #print("display format: "+ self.displayFormatOpt.get())
-        #print("measure units: "+ self.measureUnitsOpt.get())
-        #print("bellnote: %s (%d)"%(str(self.bellNoteEntry.get()), self.bellNoteEntry.current()))
 
     @debugger
     def aboutCommand(self):
         messagebox.showinfo(
             "About", "Tilbury Woodwinds Company\nWhistle Calculator\nChuck Tilbury (c) 2019")
+
+    @debugger
+    def dumpInternalData(self):
+        self.data.print_data()
+        utility.dump_events()
+
+    @debugger
+    def helpCommand(self):
+        #messagebox.showinfo(
+        #    "Help", 
+        dialogs.helpDialog(self.master)

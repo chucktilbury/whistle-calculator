@@ -164,12 +164,16 @@ def calculateQuadratic():
     for i in range(2, len(holes)):
         length = length - closedCorrection(i)
 
-    a = holes[1] / bore
+    h = holes[1]
+    print(h)
+    a = h / bore
     a = a * a
     b = -(xEnd + length) * a
     c = (xEnd * length) * a
     c += effectiveThickness(1) * (length - xEnd)
-    hlocs[1] = (-b - math.sqrt((b * b) - (4 * a * c))) / ((2 * a))
+    v = (b * b) - (4 * a * c)
+    print(a, b, c, v)
+    hlocs[1] = (-b - math.sqrt(v)) / ((2 * a))
 
     # find subsequent finger hole locations
     for holeNum in range(2, len(holes)):
@@ -188,7 +192,9 @@ def calculateQuadratic():
         c = length - ratio
         c = c * prevHole
         c = c + length * length
-        hlocs[holeNum] = (-b - math.sqrt((b * b) - (4 * a * c))) / ((2 * a))
+        v = (b * b) - (4 * a * c)
+        print(a, b, c, v)
+        hlocs[holeNum] = (-b - math.sqrt(v)) / ((2 * a))
 
     embouchureCorrection()
     for holeNum in range(1, len(holes)):

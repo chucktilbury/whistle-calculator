@@ -35,7 +35,7 @@ class DataStore:
             DataStore.__instance = self
 
         # Continue with init exactly once.
-        self.logger = Logger(self, Logger.DEBUG)
+        self.logger = Logger(self, Logger.INFO)
         self.logger.debug("enter constructor")
 
         self.note_table = [
@@ -206,6 +206,14 @@ class DataStore:
 
     # getters and setters
     @debugger
+    def get_file_name(self):
+        return self.internal_data['file_name']
+
+    @debugger
+    def set_file_name(self, name):
+        self.internal_data['file_name'] = self.validate_type(name, str)
+
+    @debugger
     def get_disp_frac(self):
         return self.internal_data['disp_frac']
 
@@ -275,10 +283,39 @@ class DataStore:
     @debugger
     def set_bell_freq(self, val):
         self.internal_data['bell_freq'] = self.validate_type(val, float)
+        self.internal_data['freqs'][0] = self.validate_type(val, float)
 
     @debugger
     def set_embouchure_area(self, val):
         self.internal_data['embouchure_area'] = self.validate_type(val, float)
+
+    @debugger
+    def get_emb_length(self):
+        return self.internal_data['emb_length']
+
+    @debugger
+    def get_emb_width(self):
+        return self.internal_data['emb_width']
+
+    @debugger
+    def set_emb_length(self, val):
+        self.internal_data['emb_length'] = self.validate_type(val, float)
+
+    @debugger
+    def set_emb_width(self, val):
+        self.internal_data['emb_width'] = self.validate_type(val, float)
+
+    def get_ecorr(self):
+        return self.internal_data['ecorr']
+
+    def get_chim_const(self):
+        return self.internal_data['chim_const']
+
+    def set_ecorr(self, val):
+        self.internal_data['ecorr'] = self.validate_type(val, float)
+
+    def set_chim_const(self, val):
+        self.internal_data['chim_const'] = self.validate_type(val, float)
 
     @debugger
     def get_hole_inc(self):
@@ -324,69 +361,105 @@ class DataStore:
     
     @debugger
     def get_hole_size(self, index):
-        return self.internal_data['hole_sizes'][index]
+        return self.internal_data['hole_sizes'][index+1]
 
     @debugger
     def get_hole_interval(self, index):
-        return self.internal_data['intervals'][index]
+        return self.internal_data['intervals'][index+1]
 
     @debugger
     def get_hole_note(self, index):
-        return self.internal_data['notes'][index]
+        return self.internal_data['notes'][index+1]
 
     @debugger
     def get_hole_freq(self, index):
-        return self.internal_data['freqs'][index]
+        return self.internal_data['freqs'][index+1]
 
     @debugger
     def get_hole_location(self, index):
-        return self.internal_data['locations'][index]
+        return self.internal_data['locations'][index+1]
+
+    @debugger
+    def get_end_location(self):
+        return self.internal_data['locations'][0]
+
+    @debugger
+    def set_end_location(self, val):
+        self.internal_data['locations'][0] = self.validate_type(val, float)
 
     @debugger
     def get_hole_diff(self, index):
-        return self.internal_data['diffs'][index]
+        return self.internal_data['diffs'][index+1]
 
     @debugger
     def get_hole_cutoff(self, index):
-        return self.internal_data['cutoffs'][index]
+        return self.internal_data['cutoffs'][index+1]
+
+    @debugger
+    def get_hole_rcutoff(self, index):
+        return self.internal_data['rcutoffs'][index+1]
+
+    @debugger
+    def get_hole_xloc(self, index):
+        return self.internal_data['xlocs'][index+1]
+
+    @debugger
+    def get_calc_type(self):
+        return self.internal_data['calc_type']
+    
+    ######################################################################
+
+    @debugger
+    def set_calc_type(self, val):
+        self.internal_data['calc_type'] = self.validate_type(val, int)
+
+    @debugger
+    def set_hole_rcutoff(self, index, val):
+        self.internal_data['rcutoffs'][index+1] = self.validate_type(val, float)
+
+    @debugger
+    def set_hole_xloc(self, index, val):
+        self.internal_data['xlocs'][index+1] = self.validate_type(val, float)
 
     @debugger
     def set_hole_size(self, index, val):
-        self.internal_data['hole_sizes'][index] = self.validate_type(val, float)
+        self.internal_data['hole_sizes'][index+1] = self.validate_type(val, float)
 
     @debugger
     def set_hole_interval(self, index, val):
-        self.internal_data['intervals'][index] = self.validate_type(val, int)
+        self.internal_data['intervals'][index+1] = self.validate_type(val, int)
 
     @debugger
     def set_hole_note(self, index, val):
-        self.internal_data['notes'][index] = self.validate_type(val, str)
+        self.internal_data['notes'][index+1] = self.validate_type(val, str)
 
     @debugger
     def set_hole_freq(self, index, val):
-        self.internal_data['freqs'][index] = self.validate_type(val, float)
+        self.internal_data['freqs'][index+1] = self.validate_type(val, float)
 
     @debugger
     def set_hole_location(self, index, val):
-        self.internal_data['locations'][index] = self.validate_type(val, float)
+        self.internal_data['locations'][index+1] = self.validate_type(val, float)
 
     @debugger
     def set_hole_diff(self, index, val):
-        self.internal_data['diffs'][index] = self.validate_type(val, float)
+        self.internal_data['diffs'][index+1] = self.validate_type(val, float)
 
     @debugger
     def set_hole_cutoff(self, index, val):
-        self.internal_data['cutoffs'][index] = self.validate_type(val, float)
+        self.internal_data['cutoffs'][index+1] = self.validate_type(val, float)
 
     @debugger
     def clear_hole_data(self):
         for x in range(12):
-            self.set_hole_size(x, 0.0)
-            self.set_hole_note(x, '')
-            self.set_hole_freq(x, 0.0)
+            #self.set_hole_size(x, 0.0)
+            #self.set_hole_note(x, '')
+            #self.set_hole_freq(x, 0.0)
             self.set_hole_location(x, 0.0)
             self.set_hole_diff(x, 0.0)
             self.set_hole_cutoff(x, 0.0)
+            self.set_hole_rcutoff(x, 0.0)
+            self.set_hole_xloc(x, 0.0)
 
     # Utilities
     @debugger
