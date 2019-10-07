@@ -53,25 +53,21 @@ class UpperFrame(tkinter.Frame):
         self.bellNoteCombo.grid(row=2, column=3, pady=4)
         self.bellNoteCombo.bind("<<ComboboxSelected>>", self.bellSelectCallback)
 
-        tkinter.Label(self.master, text="Embouchure Area").grid(row=3, column=0, sticky=tkinter.E, pady=4)
+        tkinter.Label(self.master, text="Embouchure Area").grid(row=4, column=0, sticky=tkinter.E, pady=4)
         self.embouchureAreaEntry = tkinter.Entry(self.master)
-        self.embouchureAreaEntry.grid(row=3, column=1, pady=4)
+        self.embouchureAreaEntry.grid(row=4, column=1, pady=4)
 
-        tkinter.Label(self.master, text="Bell Frequency").grid(row=3, column=2, sticky=tkinter.E, pady=4)
-        self.bellFreqEntry = tkinter.Entry(self.master)
-        self.bellFreqEntry.grid(row=3, column=3, sticky=tkinter.E, pady=4)
-
-        tkinter.Label(self.master, text="Units of Measure").grid(row=4, column=0, sticky=tkinter.E, pady=4)
+        tkinter.Label(self.master, text="Units of Measure").grid(row=3, column=0, sticky=tkinter.E, pady=4)
         self.measureUnitsOpt = ttk.Combobox(self.master, state="readonly", values=["inch", "mm"])
         self.measureUnitsOpt.config(width=17)
-        self.measureUnitsOpt.grid(row=4, column=1, pady=4)
+        self.measureUnitsOpt.grid(row=3, column=1, pady=4)
         self.measureUnitsOpt.bind("<<ComboboxSelected>>", self.measureUnitsCallback)
 
-        tkinter.Label(self.master, text="Display Format").grid(row=4, column=2, sticky=tkinter.E, pady=4)
+        tkinter.Label(self.master, text="Display Format").grid(row=3, column=2, sticky=tkinter.E, pady=4)
         self.displayFormatOpt = ttk.Combobox(self.master, state="readonly", values=["decimal", "fraction"])
         self.displayFormatOpt.current(1)
         self.displayFormatOpt.config(width=17)
-        self.displayFormatOpt.grid(row=4, column=3, pady=4)
+        self.displayFormatOpt.grid(row=3, column=3, pady=4)
         self.displayFormatOpt.bind("<<ComboboxSelected>>", self.displayFormatCallback)
 
         if self.measureUnitsOpt.get() == 'mm':
@@ -79,18 +75,8 @@ class UpperFrame(tkinter.Frame):
 
         self.refreshButton = tkinter.Button(
             self.master, text="Refresh", width=14, command=self.refreshButtonCommand)
-        self.refreshButton.grid(row=5, column=0, pady=4)
+        self.refreshButton.grid(row=4, column=3, pady=4)
 
-        self.printButton = tkinter.Button(self.master, text="Print", width=14, command=self.printButtonCommand)
-        self.printButton.grid(row=5, column=1, pady=4)
-
-        self.setEmbouchureButton = tkinter.Button(self.master, text="Embouchure", width=14, command=self.setEmbouchureCommand)
-        self.setEmbouchureButton.grid(row=5, column=2, pady=4)
-
-        self.setOtherButton = tkinter.Button(self.master, text="Other Parameters", width=14, command=self.setOtherCommand)
-        self.setOtherButton.grid(row=5, column=3, pady=4)
-
-        #self.refresh()
         self.set_state() # write what's in the data_store to the GUI
 
     @debugger
@@ -140,11 +126,6 @@ class UpperFrame(tkinter.Frame):
         self.numHolesEntry.delete(0, tkinter.END)
         self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
 
-        self.bellFreqEntry.config(state=tkinter.NORMAL)
-        self.bellFreqEntry.delete(0, tkinter.END)
-        self.bellFreqEntry.insert(0, str(self.data_store.get_bell_freq()))
-        self.bellFreqEntry.config(state="readonly")
-
         self.embouchureAreaEntry.config(state=tkinter.NORMAL)
         self.embouchureAreaEntry.delete(0, tkinter.END)
         self.embouchureAreaEntry.insert(0, str(self.data_store.get_embouchure_area()))
@@ -165,11 +146,21 @@ class UpperFrame(tkinter.Frame):
             else:
                 self.logger.debug("ignore")
             return True
-        except ValueError:
+        except ValueError as e:
+            self.logger.error(str(e))
             messagebox.showerror("Error", "Could not convert inside diameter to a floating point number.\nRead value was \"%s\"." % (v))
+            self.insideDiaEntry.delete(0, tkinter.END)
+            self.insideDiaEntry.insert(0, str(self.data_store.get_inside_dia()))
             return False
         except IndexError:
-            pass # ignore always. happens as a result of tkinter's message handling
+            self.logger.error(str(e))
+            self.wallThicknessEntry.delete(0, tkinter.END)
+            self.wallThicknessEntry.insert(0, str(self.data_store.get_wall_thickness()))
+        except Exception as e:
+            self.logger.error(str(e))
+            messagebox.showerror("Unknown Error", "Unknown exception trying to convert inside diameter to a floating point number.\nRead value was \"%s\".\nException: %s" % (v, str(e)))
+            self.wallThicknessEntry.delete(0, tkinter.END)
+            self.wallThicknessEntry.insert(0, str(self.data_store.get_wall_thickness()))
 
 
     @debugger
@@ -186,11 +177,21 @@ class UpperFrame(tkinter.Frame):
             else:
                 self.logger.debug("ignore")
             return True
-        except ValueError:
+        except ValueError as e:
+            self.logger.error(str(e))
             messagebox.showerror("Error", "Could not convert wall thickness to a floating point number.\nRead value was \"%s\"." % (v))
+            self.wallThicknessEntry.delete(0, tkinter.END)
+            self.wallThicknessEntry.insert(0, str(self.data_store.get_wall_thickness()))
             return False
         except IndexError:
-            pass
+            self.logger.error(str(e))
+            self.wallThicknessEntry.delete(0, tkinter.END)
+            self.wallThicknessEntry.insert(0, str(self.data_store.get_wall_thickness()))
+        except Exception as e:
+            self.logger.error(str(e))
+            messagebox.showerror("Unknown Error", "Unknown exception trying convert wall thickness to a floating point number.\nRead value was \"%s\".\nException %s" % (v, str(e)))
+            self.wallThicknessEntry.delete(0, tkinter.END)
+            self.wallThicknessEntry.insert(0, str(self.data_store.get_wall_thickness()))
 
 
     @debugger
@@ -210,19 +211,26 @@ class UpperFrame(tkinter.Frame):
                     self.logger.debug("ignore")
                 return True
             else:
+                self.logger.error("range error on number of holes: %s"%(str(n)))
+                messagebox.showerror("Error", message="Number of holes must be an integer between 1 and 12.\nRead value was \"%s\"." % (v))
                 self.numHolesEntry.delete(0, tkinter.END)
                 self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
-                messagebox.showerror("Error", message="Number of holes must be an integer between 1 and 12.\nRead value was \"%s\"." % (v))
                 return False
         except ValueError as e:
-            print(repr(e))
-            self.numHolesEntry.delete(0, tkinter.END)
-            self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
+            self.logger.error(str(e))
             messagebox.showerror("Error", message="Could not convert number of holes to an integer.\nRead value was \"%s\"." % (v))
-            return False
-        except IndexError:
             self.numHolesEntry.delete(0, tkinter.END)
             self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
+            return False
+        except IndexError as e:
+            self.logger.error(str(e))
+            self.numHolesEntry.delete(0, tkinter.END)
+            self.numHolesEntry.insert(0, str(self.data_store.get_number_holes()))
+        except Exception as e:
+            self.logger.error(str(e))
+            messagebox.showerror("Unknown Error", message="Unknown exception trying to convert number of holes to an integer.\nRead value was \"%s\".\nException: %s" % (v, str(e)))
+            self.wallThicknessEntry.delete(0, tkinter.END)
+            self.wallThicknessEntry.insert(0, str(self.data_store.get_wall_thickness()))
 
 
     @debugger
@@ -280,21 +288,6 @@ class UpperFrame(tkinter.Frame):
         self.refreshButton.focus_set()
         self.get_state()
         raise_event('UPDATE_LINES_EVENT')
-
-
-    @debugger
-    def setEmbouchureCommand(self):
-        self.setEmbouchureButton.focus_set()
-
-
-    @debugger
-    def setOtherCommand(self):
-        self.setOtherButton.focus_set()
-
-
-    @debugger
-    def printButtonCommand(self):
-        self.printButton.focus_set()
 
     @debugger
     def change_units(self):

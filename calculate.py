@@ -6,12 +6,8 @@ from data_store import DataStore
 from utility import Logger, debugger, register_event, raise_event
 
 # Speed of Sound = 345 m/s = 1130 ft/s = 770 miles/hr
-
 class Calculator:
 
-    # TODO:
-    #   1. Add formulas 
-    #   2. Connect the formulas to the data store
     def __init__(self):
         # constant data
         self.logger = Logger(self, Logger.INFO)
@@ -21,11 +17,9 @@ class Calculator:
         self.logger.debug("end constructor")
         register_event("CALCULATE_EVENT", self.do_calc)
 
-        # TODO: make temperature a configurable variable
         self.isound = 13584.0
         self.msound = self.isound * 25.4
 
-        # TODO: make these accessible from configuration??
         self.max_loop = 12
         self.max_delta = 0.0001
 

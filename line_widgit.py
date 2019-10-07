@@ -3,6 +3,7 @@ import tkinter
 import sys
 
 from data_store import DataStore
+#from exception import AppError
 #from configuration import Configuration
 from hole_widgit import HoleSizeWidgit
 from utility import Logger, debugger, raise_event
@@ -16,7 +17,7 @@ class LineWidgit(tkinter.Frame):
     '''
 
     def __init__(self, parent,lineno):
-        self.logger = Logger(self, Logger.DEBUG)
+        self.logger = Logger(self, Logger.ERROR)
         self.logger.debug("constructor")
         tkinter.Frame.__init__(self, parent)
 
@@ -115,11 +116,24 @@ class LineWidgit(tkinter.Frame):
             val = int(self.inter_ctl.get())
             oldval = self.data_store.get_hole_interval(self.index)
             if val != oldval:
-                self.data_store.set_hole_interval(self.index, val)
-                self.logger.debug("change interval from %d to %d"%(oldval, val))
-                raise_event("UPDATE_NOTES_EVENT")
+                if val > 0 and val < 5:
+                    self.data_store.set_hole_interval(self.index, val)
+                    self.logger.debug("change interval from %d to %d"%(oldval, val))
+                    raise_event("UPDATE_NOTES_EVENT")
+                else:
+                    self.logger.error("invalid value for interval: %s"%(str(self.inter_ctl.get())))
+                    messagebox.showerror("ERROR", "Intervals must be an integer between 1 and 4")
+                    self.inter_ctl.delete(0, tkinter.END)
+                    self.inter_ctl.insert(0, str(self.data_store.get_hole_interval(self.index)))
+                    return False
             else:
                 self.logger.debug("ignore")
+        except ValueError:
+            self.logger.error("invalid integer for interval: %s"%(str(self.inter_ctl.get())))
+            messagebox.showerror("ERROR", "Cannot convert the string \"%s\" to an integer between 1 1nd 4"%(self.inter_ctl.get()))
+            self.inter_ctl.delete(0, tkinter.END)
+            self.inter_ctl.insert(0, str(self.data_store.get_hole_interval(self.index)))
+            return False
         except IndexError:
             pass  # always ignore
 

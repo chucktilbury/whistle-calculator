@@ -1,8 +1,24 @@
 
 
-X1. update bell freq when changing keys.
-2. update when changing intervals.
-3. support direct entry of hole sizes?
+X 1.  update bell freq when changing keys.
+X 2.  update when changing intervals.
+X 3.  support direct entry of hole sizes?
+X 4.  If no whistle to load is found, then create the 
+    default whistle.
+X 5.  Clean up the way that file names are handled. The current file
+    name is stored in the data_store.
+X 6.  Get rid of the exception classes and just use the messagebox.
+    Handle all exceptions close to where they are generated.
+X 7. Clean up the upper frame a bit. Move the buttons to the menu.
+X 8.  Export the whistle to a text file instead of trying to print it out. Create
+    a menu item for exporting.
+9.  Add the length to the top frame.
+10. Make the length more accurate by adding the various corrections.
+11. Add code to configure speed of sound based on temp and humidity.
+12. Add the embouchure information to the data_store.
+13. Plug in the emouchure area to the calculations.
+14. Add the max-delta to the data_store and configuration.
+15. Add the calc strategy to the data_store
 
 --------
 

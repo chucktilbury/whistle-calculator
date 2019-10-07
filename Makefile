@@ -8,8 +8,8 @@ DEPS	=	main.py \
 			data_store.py \
 			upper_frame.py \
 			lower_frame.py \
-			exception.py \
-			utiltiy.py 
+			utiltiy.py \
+			dialogs.py
 
 all: $(TARGET)
 
@@ -17,4 +17,4 @@ $(TARGET): $(DEPS)
 	pyinstaller -F -n whistlecalc main.py
 
 clean:
-	rm -rf *.spec dist build __pycache__
+	rm -rf *.spec dist build __pycache__ *.wis

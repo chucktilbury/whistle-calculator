@@ -1,7 +1,8 @@
-import sys, pickle, pprint
-from tkinter import messagebox
+import sys, os, pickle, pprint
+from tkinter import messagebox as mbox
 from utility import Logger, debugger
-from exception import AppError, AppFatalError, AppWarning
+import utility
+#from exception import AppError, AppFatalError, AppWarning
 #from configuration import Configuration
 
 
@@ -151,7 +152,10 @@ class DataStore:
 
         # default values
         self.internal_data = {}
-        self.load('default.wis')
+        if not os.path.isfile('default.wis'):
+            utility.make_default()
+        self.load()
+        
 
         # self.intervals = [2, 2, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2]
 
@@ -161,48 +165,32 @@ class DataStore:
 
         self.logger.debug("leave constructor")
 
-    # # get by data structure
-    # @debugger
-    # def get_state(self):
-    #     return self.internal_data
-
-    # # set by data structure
-    # @debugger
-    # def set_state(self, data):
-    #     self.internal_data = data
-
-    # # get and set the line data structure
-    # @debugger
-    # def get_line(self, index):
-    #     return self.internal_data['hole_values'][index]
-
-    # @debugger
-    # def set_line(self, index, line):
-    #     #self.internal_data['hole_values'].insert(index, line)
-    #     self.internal_data['hole_values'][index] = line
-
-    # @debugger
-    # def del_line(self, index):
-    #     self.logger.debug("destroy line number %d"%(index))
-    #     return self.internal_data['hole_values'].pop(index)
-
-    # @debugger
-    # def get_line_store(self):
-    #     '''
-    #     Simply return the line store for direct manipulation.
-    #     '''
-    #     return self.internal_data['hole_values']
-
     # file IO
     @debugger
     def load(self, fname=None):
+        if fname is None:
+            fname = "default.wis" # the data has not been loaded yet
+
         with open(fname, 'rb') as fh:
-            self.internal_data = pickle.load(fh)
+            try:
+                data = pickle.load(fh)
+            except Exception as e:
+                mbox.showerror("ERROR", "Cannot load the whistle file \"%s\"\nException: %s"%(fname, str(e)))
+            self.internal_data = data
 
     @debugger
     def save(self, fname=None):
-        with open(fname, "wb") as fh:
-            pickle.dump(self.internal_data, fh, protocol=pickle.HIGHEST_PROTOCOL)
+        try:
+            if fname is None:
+                fname = self.internal_data['file_name']
+
+            if os.path.isfile(fname):
+                os.rename(fname, "%s.backup"%(fname))
+
+            with open(fname, "wb") as fh:
+                pickle.dump(self.internal_data, fh, protocol=pickle.HIGHEST_PROTOCOL)
+        except Exception as e:
+                mbox.showerror("ERROR", "Cannot save the whistle file \"%s\"\nException: %s"%(fname, str(e)))
 
     # getters and setters
     @debugger
@@ -337,7 +325,31 @@ class DataStore:
             return self.internal_data['hole_mm_min']
         else:
             return self.internal_data['hole_in_min']
+
+    @debugger
+    def get_hole_inc_in(self):
+        return self.internal_data['hole_in_inc']
     
+    @debugger
+    def get_hole_max_in(self):
+        return self.internal_data['hole_in_max']
+    
+    @debugger
+    def get_hole_min_in(self):
+        return self.internal_data['hole_in_min']
+
+    @debugger
+    def get_hole_inc_mm(self):
+        return self.internal_data['hole_mm_inc']
+    
+    @debugger
+    def get_hole_max_mm(self):
+        return self.internal_data['hole_mm_max']
+    
+    @debugger
+    def get_hole_min_mm(self):
+        return self.internal_data['hole_mm_min']
+
     @debugger
     def set_hole_inc(self, val):
         if self.internal_data['units']:
@@ -358,6 +370,30 @@ class DataStore:
             self.internal_data['hole_mm_min'] = self.validate_type(val, float)
         else:
             self.internal_data['hole_in_min'] = self.validate_type(val, float)
+
+    @debugger
+    def set_hole_inc_in(self, val):
+        self.internal_data['hole_in_inc'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_max_in(self, val):
+        self.internal_data['hole_in_max'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_min_in(self, val):
+        self.internal_data['hole_in_min'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_inc_mm(self, val):
+        self.internal_data['hole_mm_inc'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_max_mm(self, val):
+        self.internal_data['hole_mm_max'] = self.validate_type(val, float)
+    
+    @debugger
+    def set_hole_min_mm(self, val):
+        self.internal_data['hole_mm_min'] = self.validate_type(val, float)
     
     @debugger
     def get_hole_size(self, index):
@@ -407,7 +443,37 @@ class DataStore:
     def get_calc_type(self):
         return self.internal_data['calc_type']
     
+    @debugger
+    def get_vsound_in(self):
+        return self.internal_data['vsound_in']
+
+    @debugger
+    def get_vsound_mm(self):
+        return self.internal_data['vsound_mm']
+
+    @debugger
+    def get_vsound(self):
+        if self.internal_data['units']:
+            return self.internal_data['vsound_mm']
+        else:
+            return self.internal_data['vsound_in']
+
     ######################################################################
+
+    @debugger
+    def set_vsound(self, val):
+        if self.internal_data['units']:
+            self.internal_data['vsound_mm'] = self.validate_type(val, float)
+        else:
+            self.internal_data['vsound_in'] = self.validate_type(val, float)
+
+    @debugger
+    def set_vsound_in(self, val):
+        self.internal_data['vsound_in'] = self.validate_type(val, float)
+
+    @debugger
+    def set_vsound_mm(self, val):
+        self.internal_data['vsound_mm'] = self.validate_type(val, float)
 
     @debugger
     def set_calc_type(self, val):
@@ -475,33 +541,40 @@ class DataStore:
                     tmp = float(var)
                     return tmp
                 except ValueError:
-                    raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
+                    mbox.showerror("FATAL ERROR", "expected type %s but got type %s"%(str(t), str(type(var))))
+                    self.logger.fatal("expected type %s but got type %s"%(str(t), str(type(var))))
                 except:
-                    raise AppFatalError("float type error.", "validate_type")
+                    mbox.showerror("FATAL ERROR", "float type error.")
+                    self.logger.fatal("float type error.")
 
             elif t is int:
                 try:
                     tmp = int(var)
                     return tmp
                 except ValueError:
-                    raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
+                    mbox.showerror("FATAL ERROR", "expected type %s but got type %s"%(str(t), str(type(var))))
+                    self.logger.fatal("expected type %s but got type %s"%(str(t), str(type(var))))
                 except:
-                    raise AppFatalError("int type error.", "validate_type")
+                    mbox.showerror("FATAL ERROR", "int type error.")
+                    self.logger.fatal("int type error.")
 
             elif t is bool:
                 try:
                     tmp = bool(var)
                     return tmp
                 except ValueError:
-                    raise AppFatalError("expected type %s but got type %s"%(str(t), str(type(var))), "validate_type")
+                    mbox.showerror("FATAL ERROR", "expected type %s but got type %s"%(str(t), str(type(var))))
+                    self.logger.fatal("expected type %s but got type %s"%(str(t), str(type(var))))
                 except:
-                    raise AppFatalError("bool type error.", "validate_type")
+                    mbox.showerror("FATAL ERROR", "bool type error.")
+                    self.logger.fatal("bool type error.")
 
             elif t is str:
                 # anything can be converted to a str()
                 return str(var)
             else:
-                raise AppFatalError("attempt to validate an unexpected type %s as type %s."%(str(type(var)), str(t)), "validate_type")
+                mbox.showerror("FATAL ERROR", "attempt to validate an unexpected type %s as type %s."%(str(type(var)), str(t)))
+                self.logger.fatal("attempt to validate an unexpected type %s as type %s."%(str(type(var)), str(t)))
         else:
             return var
 

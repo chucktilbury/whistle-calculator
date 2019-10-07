@@ -1,11 +1,11 @@
-from tkinter import messagebox
+from tkinter import messagebox as mbox
 import tkinter
 import sys, math
 
 from data_store import DataStore
 #from configuration import Configuration
 from utility import Logger, debugger, register_event, raise_event
-from exception import AppError, AppFatalError
+#from exception import AppError, AppFatalError
 import utility
 
 class HoleSizeWidgit(tkinter.Frame):
@@ -66,7 +66,7 @@ class HoleSizeWidgit(tkinter.Frame):
             else:
                 val = float(self.entry.get())
         except ValueError as e:
-            raise AppError('get_state', 'Cannot convert hole to float: %s'%(self.entry.get()), e)
+            mbox.showerror('ERROR', 'Cannot convert hole to float: \"%s\": %s'%(self.entry.get(), e))
 
         self.data_store.set_hole_size(self.index, val)
 

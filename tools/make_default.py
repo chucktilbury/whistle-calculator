@@ -1,6 +1,13 @@
 import pickle
 import time
 
+#
+#
+# DO NOT USE THIS
+# For reference ONLY
+#
+#
+
 default_values = {
     'date_created':0.0,
     'date_modified':0.0,
@@ -16,6 +23,8 @@ default_values = {
     'number_holes': 6,
     'bell_note_select': 62,
     'bell_freq': 587.33,
+    'vsound_in': 13584.0,
+    'vsound_mm': 13584.0 * 25.4,
     
     # embouchure data, considered configuration
     'embouchure_area': 1.2,
