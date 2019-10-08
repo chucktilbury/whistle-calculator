@@ -5,7 +5,7 @@ from tkinter import ttk
 
 from data_store import DataStore
 #from configuration import Configuration
-from utility import Logger, debugger, raise_event
+from utility import Logger, debugger, raise_event, register_event
 import utility
 
 class UpperFrame(tkinter.Frame):
@@ -17,6 +17,7 @@ class UpperFrame(tkinter.Frame):
         self.logger.debug("constructor")
         self.master = master
         self.data_store = DataStore.get_instance()
+        register_event("UPDATE_UPPER_EVENT", self.set_state)
 
     @debugger
     def create_frame(self):
@@ -70,12 +71,16 @@ class UpperFrame(tkinter.Frame):
         self.displayFormatOpt.grid(row=3, column=3, pady=4)
         self.displayFormatOpt.bind("<<ComboboxSelected>>", self.displayFormatCallback)
 
+        tkinter.Label(self.master, text="Length").grid(row=4, column=2, sticky=tkinter.E, pady=4)
+        self.lengthEntry = tkinter.Entry(self.master)
+        self.lengthEntry.grid(row=4, column=3, pady=4)
+
         if self.measureUnitsOpt.get() == 'mm':
             self.displayFormatOpt.config(state="readonly")
 
         self.refreshButton = tkinter.Button(
             self.master, text="Refresh", width=14, command=self.refreshButtonCommand)
-        self.refreshButton.grid(row=4, column=3, pady=4)
+        self.refreshButton.grid(row=5, column=0, columnspan=4, pady=4)
 
         self.set_state() # write what's in the data_store to the GUI
 
@@ -100,7 +105,7 @@ class UpperFrame(tkinter.Frame):
         self.data_store.set_wall_thickness(float(self.wallThicknessEntry.get()))
         self.data_store.set_number_holes(int(self.numHolesEntry.get()))
         self.data_store.set_bell_note_select(self.bellNoteCombo.current())
-        self.data_store.set_embouchure_area(float(self.embouchureAreaEntry.get()))
+        #self.data_store.set_embouchure_area(float(self.embouchureAreaEntry.get()))
         self.data_store.set_bell_freq(
             self.data_store.note_table[self.data_store.get_bell_note_select()]['frequency'])
 
@@ -128,9 +133,13 @@ class UpperFrame(tkinter.Frame):
 
         self.embouchureAreaEntry.config(state=tkinter.NORMAL)
         self.embouchureAreaEntry.delete(0, tkinter.END)
-        self.embouchureAreaEntry.insert(0, str(self.data_store.get_embouchure_area()))
+        self.embouchureAreaEntry.insert(0, "%0.4f"%(self.data_store.get_embouchure_area()))
         self.embouchureAreaEntry.config(state="readonly")
 
+        self.lengthEntry.config(state=tkinter.NORMAL)
+        self.lengthEntry.delete(0, tkinter.END)
+        self.lengthEntry.insert(0, "%0.4f"%(self.data_store.get_end_location()))
+        self.lengthEntry.config(state="readonly")
 
     @debugger
     def insideDiaCommand(self, event=None):
@@ -143,6 +152,7 @@ class UpperFrame(tkinter.Frame):
                 self.insideDiaEntry.delete(0, tkinter.END)
                 self.insideDiaEntry.insert(0, str(n))
                 raise_event("CALCULATE_EVENT")
+                self.data_store.set_change_flag()
             else:
                 self.logger.debug("ignore")
             return True
@@ -174,6 +184,7 @@ class UpperFrame(tkinter.Frame):
                 self.wallThicknessEntry.delete(0, tkinter.END)
                 self.wallThicknessEntry.insert(0, str(n))
                 raise_event("CALCULATE_EVENT")
+                self.data_store.set_change_flag()
             else:
                 self.logger.debug("ignore")
             return True
@@ -207,6 +218,7 @@ class UpperFrame(tkinter.Frame):
                     self.logger.debug("change number of holes from %d to %d"%(self.data_store.get_number_holes(), n))
                     self.data_store.set_number_holes(n)
                     raise_event('UPDATE_LOWER_FRAME_EVENT')
+                    self.data_store.set_change_flag()
                 else:
                     self.logger.debug("ignore")
                 return True
@@ -244,6 +256,7 @@ class UpperFrame(tkinter.Frame):
             self.data_store.set_disp_frac(val)
             raise_event("UPDATE_HOLE_EVENT")
             self.logger.debug("current format set to: %s"%(str(self.data_store.get_disp_frac())))
+            self.data_store.set_change_flag()
         else:
             self.logger.debug("ignore")
 
@@ -264,6 +277,7 @@ class UpperFrame(tkinter.Frame):
             self.data_store.set_units(val)
             self.change_units()
             self.logger.debug("current units set to: %s"%(str(self.data_store.get_units())))
+            self.data_store.set_change_flag()
         else:
             self.logger.debug("ignore")
         
@@ -279,6 +293,7 @@ class UpperFrame(tkinter.Frame):
             self.data_store.set_bell_freq(self.data_store.note_table[val]['frequency'])
             self.logger.debug("current bell selection set to: %d: %f"%(self.data_store.get_bell_note_select(), self.data_store.get_bell_freq()))
             raise_event("UPDATE_NOTES_EVENT")
+            self.data_store.set_change_flag()
         else:
             self.logger.debug("ignore")
         self.set_state()
@@ -287,7 +302,9 @@ class UpperFrame(tkinter.Frame):
     def refreshButtonCommand(self):
         self.refreshButton.focus_set()
         self.get_state()
-        raise_event('UPDATE_LINES_EVENT')
+        #raise_event('UPDATE_LINES_EVENT')
+        raise_event('UPDATE_LOWER_FRAME_EVENT')
+        self.set_state()
 
     @debugger
     def change_units(self):
@@ -308,6 +325,7 @@ class UpperFrame(tkinter.Frame):
         # Cause the other frames to update
         raise_event("CHANGE_UNITS_EVENT")
         raise_event('CALCULATE_EVENT')
+        self.data_store.set_change_flag()
 
     @debugger
     def setTitleCommand(self, event=None):
@@ -317,6 +335,7 @@ class UpperFrame(tkinter.Frame):
             if title != old_title:
                 self.data_store.set_title(title)
                 self.logger.debug("title set to: \"%s\""%(str(self.data_store.get_title())))
+                self.data_store.set_change_flag()
             else:
                 self.logger.debug("ignore")
         except IndexError:

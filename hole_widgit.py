@@ -40,7 +40,7 @@ class HoleSizeWidgit(tkinter.Frame):
         self.entry = tkinter.Entry(self, width=25-18)
         self.entry.grid(row=0, column=1, rowspan=2)
 
-        self.bitmap_up = tkinter.BitmapImage(data=BITMAP_UP, foreground="black", background="white")
+        self.bitmap_up = tkinter.BitmapImage(data=BITMAP_UP)
         self.b1 = tkinter.Button(self, text="up", image=self.bitmap_up, command=self.incr_command)
         self.b1.grid(row=0, column=2)
         self.b1.config(width=9, height=5)
@@ -105,6 +105,7 @@ class HoleSizeWidgit(tkinter.Frame):
         self.data_store.set_hole_size(self.index, siz)
         self.update_val() # update the GUI
         raise_event("CALCULATE_EVENT")
+        self.data_store.set_change_flag()
 
     @debugger
     def decr_command(self):
@@ -119,6 +120,7 @@ class HoleSizeWidgit(tkinter.Frame):
         self.data_store.set_hole_size(self.index, siz)
         self.update_val() # update the GUI
         raise_event("CALCULATE_EVENT")
+        self.data_store.set_change_flag()
 
 
     def print_state(self):

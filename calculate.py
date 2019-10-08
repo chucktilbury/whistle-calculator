@@ -40,6 +40,7 @@ class Calculator:
         else:
             self.iterative()
         raise_event("UPDATE_LINES_EVENT")
+        raise_event("UPDATE_UPPER_EVENT")
 
     @debugger
     def closedCorrection(self, index):

@@ -12,13 +12,15 @@ X 6.  Get rid of the exception classes and just use the messagebox.
 X 7. Clean up the upper frame a bit. Move the buttons to the menu.
 X 8.  Export the whistle to a text file instead of trying to print it out. Create
     a menu item for exporting.
-9.  Add the length to the top frame.
+X 9.  Add the length to the top frame.
 10. Make the length more accurate by adding the various corrections.
 11. Add code to configure speed of sound based on temp and humidity.
 12. Add the embouchure information to the data_store.
 13. Plug in the emouchure area to the calculations.
 14. Add the max-delta to the data_store and configuration.
 15. Add the calc strategy to the data_store
+X 16. Add a notes dialog
+17. Detect change and prompt for save at quit
 
 --------
 

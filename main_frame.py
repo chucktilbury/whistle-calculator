@@ -57,6 +57,7 @@ class MainFrame(tkinter.Frame):
         settingsMenu = tkinter.Menu(menu, tearoff=0)
         settingsMenu.add_command(label="Constants", command=self.constCommand)
         settingsMenu.add_command(label="Embouchure", command=self.emboCommand)
+        settingsMenu.add_command(label="Notes", command=self.notesCommand)
         menu.add_cascade(label="Settings", menu=settingsMenu)
 
         editMenu = tkinter.Menu(menu, tearoff=0)
@@ -83,11 +84,13 @@ class MainFrame(tkinter.Frame):
 
     @debugger
     def close_window(self):
-        if messagebox.askyesno("Quit", "Are you sure you want to quit?"):
-            self.logger.debug('quit')
-            self.master.destroy()
-        else:
-            self.logger.debug('ignore')
+        if self.data.get_change_flag():
+            if messagebox.askyesno("Quit", "Do you want to save the changes before quitting?"):
+                self.logger.debug('save')
+                self.saveCommand()
+            else:
+                self.logger.debug('ignore')
+        self.master.destroy()
 
     @debugger
     def loadCommand(self):
@@ -103,10 +106,11 @@ class MainFrame(tkinter.Frame):
 
     @debugger
     def saveCommand(self):
-        d = filedialog.askdirectory(initialdir=os.getcwd(), mustexist=True)
-        p = os.path.join(d, self.data.get_file_name())
+        #d = filedialog.askdirectory(initialdir=os.getcwd(), mustexist=True)
+        #p = os.path.join(d, self.data.get_file_name())
+        p = os.path.join(os.getcwd(), self.data.get_file_name())
         if p != '':
-            print("saving file = " + p )
+            self.logger.debug("saving file = " + p )
             self.data.save(p)
         else:
             self.logger.debug("cancel")
@@ -115,7 +119,7 @@ class MainFrame(tkinter.Frame):
     def saveasCommand(self):
         f = filedialog.asksaveasfilename(initialfile=self.data.get_file_name(), filetypes=(("Whistle Files","*.wis"), ("all files", "*.*")))
         if f != '':
-            print("file save as = " + f)
+            self.logger.debug("file save as = " + f)
             self.data.save(f)
             self.data.set_file_name(f)
         else:
@@ -124,7 +128,7 @@ class MainFrame(tkinter.Frame):
     @debugger
     def aboutCommand(self):
         messagebox.showinfo(
-            "About", "Tilbury Woodwinds Company\nWhistle Calculator\nChuck Tilbury (c) 2019")
+            "About", "Tilbury Woodwinds Company\nWhistle Calculator\nChuck Tilbury (c) 2019\nVersion: 1.0\nData Version: %s"%(self.data.get_version()))
 
     @debugger
     def dumpInternalData(self):
@@ -175,7 +179,10 @@ class MainFrame(tkinter.Frame):
                     fh.write("%-10s "%(self.data.get_hole_note(x)))
                     fh.write("%0.4f Hz\n"%(self.data.get_hole_freq(x)))
 
-                fh.write("%s\n"%("-"*60))
+                fh.write("\n%s\n"%("-"*60))
+                fh.write("Notes:\n\n")
+                fh.write("%s"%(self.data.get_notes()))
+                fh.write("\n%s\n"%("-"*60))
                 fh.write("\nCut sheet generated on %s\nby Tilbury Woodwinds Whistle Calculator\n\n"%(time.ctime()))
 
         else:
@@ -184,14 +191,14 @@ class MainFrame(tkinter.Frame):
     @debugger
     def emboCommand(self):
         dialogs.EmbouchureDialog(self.master)
-        pass
-
 
     @debugger
     def constCommand(self):
         dialogs.ConstDialog(self.master)
-        pass
 
+    @debugger
+    def notesCommand(self):
+        dialogs.NotesDialog(self.master)
 
     #@debugger
     #def printButtonCommand(self):

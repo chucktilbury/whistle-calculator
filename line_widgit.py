@@ -109,6 +109,7 @@ class LineWidgit(tkinter.Frame):
             self.data_store.set_hole_diff(self.index, utility.mm_to_in(self.data_store.get_hole_diff(self.index)))
             self.data_store.set_hole_cutoff(self.index, utility.mm_to_in(self.data_store.get_hole_cutoff(self.index)))
         self.set_state()
+        self.data_store.set_change_flag()
 
     @debugger
     def change_interval(self, event=None):
@@ -120,6 +121,7 @@ class LineWidgit(tkinter.Frame):
                     self.data_store.set_hole_interval(self.index, val)
                     self.logger.debug("change interval from %d to %d"%(oldval, val))
                     raise_event("UPDATE_NOTES_EVENT")
+                    self.data_store.set_change_flag()
                 else:
                     self.logger.error("invalid value for interval: %s"%(str(self.inter_ctl.get())))
                     messagebox.showerror("ERROR", "Intervals must be an integer between 1 and 4")

@@ -38,6 +38,7 @@ class DataStore:
         # Continue with init exactly once.
         self.logger = Logger(self, Logger.INFO)
         self.logger.debug("enter constructor")
+        self.change_flag = False
 
         self.note_table = [
             {"note":"C0",      "frequency":16.35},   # index = 0
@@ -177,6 +178,7 @@ class DataStore:
             except Exception as e:
                 mbox.showerror("ERROR", "Cannot load the whistle file \"%s\"\nException: %s"%(fname, str(e)))
             self.internal_data = data
+        self.clear_change_flag()
 
     @debugger
     def save(self, fname=None):
@@ -189,6 +191,8 @@ class DataStore:
 
             with open(fname, "wb") as fh:
                 pickle.dump(self.internal_data, fh, protocol=pickle.HIGHEST_PROTOCOL)
+            
+            self.clear_change_flag()
         except Exception as e:
                 mbox.showerror("ERROR", "Cannot save the whistle file \"%s\"\nException: %s"%(fname, str(e)))
 
@@ -282,8 +286,16 @@ class DataStore:
         return self.internal_data['emb_length']
 
     @debugger
+    def get_emb_diameter(self):
+        return self.internal_data['emb_diameter']
+
+    @debugger
     def get_emb_width(self):
         return self.internal_data['emb_width']
+
+    @debugger
+    def get_emb_type(self):
+        return self.internal_data['emb_type']
 
     @debugger
     def set_emb_length(self, val):
@@ -292,6 +304,14 @@ class DataStore:
     @debugger
     def set_emb_width(self, val):
         self.internal_data['emb_width'] = self.validate_type(val, float)
+
+    @debugger
+    def set_emb_diameter(self, val):
+        self.internal_data['emb_diameter'] = self.validate_type(val, float)
+
+    @debugger
+    def set_emb_type(self, val):
+        self.internal_data['emb_type'] = self.validate_type(val, int)
 
     def get_ecorr(self):
         return self.internal_data['ecorr']
@@ -458,7 +478,40 @@ class DataStore:
         else:
             return self.internal_data['vsound_in']
 
+    @debugger
+    def get_notes(self):
+        return self.internal_data['text_notes']
+
+    @debugger
+    def get_max_delta(self):
+        return self.internal_data['max_delta']
+
+    @debugger
+    def get_version(self):
+        # Note that there is no set_version() this is only set at build time.
+        return self.internal_data['version']
+
+    @debugger
+    def set_change_flag(self):
+        self.change_flag = True
+
+    @debugger
+    def get_change_flag(self):
+        return self.change_flag
+
     ######################################################################
+
+    @debugger
+    def clear_change_flag(self):
+        self.change_flag = False
+
+    @debugger
+    def set_max_delta(self, val):
+        self.internal_data['max_delta'] = self.validate_type(val, float)
+        
+    @debugger
+    def set_notes(self, val):
+        self.internal_data['text_notes'] = self.validate_type(val, str)
 
     @debugger
     def set_vsound(self, val):

@@ -251,7 +251,7 @@ def make_default():
         'calc_type': 0,      # 0 = quadratic, 1 = iterative
         'title': "Default Whistle",
         'inside_dia': 0.5,
-        'wall_thickness': 0.15,
+        'wall_thickness': 0.015,
         'number_holes': 6,
         'bell_note_select': 62,
         'bell_freq': 587.33,
@@ -262,6 +262,8 @@ def make_default():
         'embouchure_area': 1.2,
         'emb_length': 0.175,
         'emb_width': 0.375,
+        'emb_diameter': 0.0,
+        'emb_type': 0, # 0 = rectangle, 1 = oval, 2 = round
         'ecorr':0.25,
         'chim_const': 0.75,
 
@@ -284,6 +286,8 @@ def make_default():
         'hole_mm_max': 12.5,
         'hole_mm_min': 2.5,
         'version': 1.0,
+        'text_notes': 'put your notes here',
+        'max_delta': 0.0001
     }
 
     default_values['date_created'] = time.time()
