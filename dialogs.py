@@ -102,7 +102,7 @@ class BaseDialog(tkinter.Toplevel):
     def __init__(self, parent):# , title = None):
 
         #init the logger
-        self.logger = Logger(self, level=Logger.DEBUG)
+        self.logger = Logger(self, level=Logger.INFO)
         self.logger.debug("start constructor")
 
         tkinter.Toplevel.__init__(self, parent)

@@ -11,7 +11,7 @@ from upper_frame import UpperFrame
 from utility import Logger, debugger, raise_event
 #from exception import AppFatalError
 #from configuration import Configuration
-import utility 
+import utility
 import dialogs
 
 class MainFrame(tkinter.Frame):
@@ -19,7 +19,7 @@ class MainFrame(tkinter.Frame):
     This is the main frame that "contains" the other frames.
     '''
     def __init__(self, master=None):
-        self.logger = Logger(self, Logger.DEBUG)
+        self.logger = Logger(self, Logger.INFO)
         self.logger.debug(sys._getframe().f_code.co_name)
 
         tkinter.Frame.__init__(self, master)
@@ -33,7 +33,7 @@ class MainFrame(tkinter.Frame):
 
         # set up some default values
         #self.current_file_name = os.path.join(os.getcwd(), "untitled.wis")
-        
+
         self.data = DataStore.get_instance()
         self.logger.debug("data store: %s"%(str(self.data)))
 
@@ -138,7 +138,7 @@ class MainFrame(tkinter.Frame):
     @debugger
     def helpCommand(self):
         #messagebox.showinfo(
-        #    "Help", 
+        #    "Help",
         dialogs.helpDialog(self.master)
 
     @debugger
@@ -152,7 +152,7 @@ class MainFrame(tkinter.Frame):
                 fh.write("%s\n"%(self.data.get_title()))
                 fh.write("%s\n\n"%("-"*60))
                 fh.write("BELL:       %s (%0.3f Hz)\n"%(
-                            self.data.note_table[self.data.get_bell_note_select()]['note'], 
+                            self.data.note_table[self.data.get_bell_note_select()]['note'],
                             self.data.note_table[self.data.get_bell_note_select()]['frequency']))
                 fh.write("ID:         %0.3f\n"%(self.data.get_inside_dia()))
                 fh.write("WALL:       %0.3f\n"%(self.data.get_wall_thickness()))

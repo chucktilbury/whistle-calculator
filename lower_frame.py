@@ -11,7 +11,7 @@ class LowerFrame(tkinter.Frame):
     This class manages the lower from of the display.
     '''
     def __init__(self, master):
-        self.logger = Logger(self, Logger.DEBUG)
+        self.logger = Logger(self, Logger.INFO)
         self.logger.debug("constructor")
 
         self.data_store = DataStore.get_instance()
@@ -55,7 +55,7 @@ class LowerFrame(tkinter.Frame):
             self.line_widgits[idx].set_state()
 
         self.update_notes()
-        
+
     @debugger
     def set_state(self):
         '''
@@ -75,7 +75,7 @@ class LowerFrame(tkinter.Frame):
     @debugger
     def update_notes(self):
         sel = self.data_store.get_bell_note_select()
-        for index, line in enumerate(self.line_widgits): 
+        for index, line in enumerate(self.line_widgits):
             sel += self.data_store.get_hole_interval(index)
             self.data_store.set_hole_freq(index, self.data_store.note_table[sel]["frequency"])
             self.data_store.set_hole_note(index, self.data_store.note_table[sel]["note"])
@@ -86,7 +86,7 @@ class LowerFrame(tkinter.Frame):
     @debugger
     def change_units(self):
         '''
-        When this is called, it is assumed that the data_store has the wrong 
+        When this is called, it is assumed that the data_store has the wrong
         units. The values are converted to the current units and the GUI
         is updated.
         '''

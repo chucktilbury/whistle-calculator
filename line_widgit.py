@@ -17,7 +17,7 @@ class LineWidgit(tkinter.Frame):
     '''
 
     def __init__(self, parent,lineno):
-        self.logger = Logger(self, Logger.ERROR)
+        self.logger = Logger(self, Logger.INFO)
         self.logger.debug("constructor")
         tkinter.Frame.__init__(self, parent)
 

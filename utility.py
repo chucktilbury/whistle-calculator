@@ -6,7 +6,7 @@ from tkinter import messagebox as mbox
 
 class Logger(object):
     '''
-    Logger class produces messages on the text console. Used mostly for 
+    Logger class produces messages on the text console. Used mostly for
     debugging. Supports individual class debugging and debug levels.
     '''
 
@@ -178,23 +178,23 @@ and then there is no way to send the same event to multiple widgits.
 
 The problem that this one solves is that there are a couple of controls in
 the main window that need to cause everything else in the window to update.
-One example of this is when the units are changed from inch to metric. 
+One example of this is when the units are changed from inch to metric.
 Every widgit that carries a measurement of some kind needs to be updated and
-some of them are harder to change than others, so they all need their own 
+some of them are harder to change than others, so they all need their own
 method to do that.
 
 This event handler is very dumb. When a event is invoked, every handler
-that has registered for the event is invoked in the order that it was 
+that has registered for the event is invoked in the order that it was
 registered. This is done synchronously. It is perfectly okay for one event
 handler to to raise another event, however, there is no checking to see
-if there is a circular event chain. Event chains should be short. It is 
-unwise to depend on the order that they are run. 
+if there is a circular event chain. Event chains should be short. It is
+unwise to depend on the order that they are run.
 
 If an event is raised with arguments, but the handler does not have the
-positional args, then an exception will be raised at runtime. Every 
+positional args, then an exception will be raised at runtime. Every
 handler is called with the same arguments from the call to raise_event()
 
-This is implemented as functions to make it unnessessary to pass around 
+This is implemented as functions to make it unnessessary to pass around
 an event object to every class that will use it.
 '''
 
@@ -204,9 +204,9 @@ def register_event(name, callback):
     Store the event in the internal storage.
     '''
     logger.debug("%s: %s: %s.%s"%(
-                sys._getframe().f_code.co_name, 
-                name, 
-                callback.__self__.__class__.__name__, 
+                sys._getframe().f_code.co_name,
+                name,
+                callback.__self__.__class__.__name__,
                 callback.__name__))
 
     if not name in __event_list__:
@@ -259,7 +259,7 @@ def make_default():
         'vsound_mm': 13584.0 * 25.4,
         'temperature': 72.0,
         #'humidity': 50,
-        
+
         # embouchure data, considered configuration
         'embouchure_area': 0.0656,
         'emb_length': 0.175,
@@ -279,7 +279,7 @@ def make_default():
         'diffs': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         'cutoffs': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         'rcutoffs': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        'hole_sizes': [0.0, 1/4, 11/32, 1/4, 9/32, 9/32, 1/4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        'hole_sizes': [0.0, 1/4, 11/32, 1/4, 9/32, 9/32, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4],
 
         # applies to all the holes
         'hole_in_inc': 1/64,
@@ -297,7 +297,7 @@ def make_default():
     default_values['date_modified'] = time.time()
 
     with open('default.wis', 'wb') as fp:
-        pickle.dump(default_values, fp, protocol=pickle.HIGHEST_PROTOCOL)    
+        pickle.dump(default_values, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
 def base_decorator(decorator):
     '''This decorator can be used to turn simple functions

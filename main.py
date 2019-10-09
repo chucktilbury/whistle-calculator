@@ -10,7 +10,7 @@ from utility import Logger
 if __name__ == "__main__":
 
     try:
-        logger = Logger(__name__, Logger.DEBUG)
+        logger = Logger(__name__, Logger.INFO)
         logger.debug(sys._getframe().f_code.co_name)
 
         top = tkinter.Tk()

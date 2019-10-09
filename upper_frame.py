@@ -13,7 +13,7 @@ class UpperFrame(tkinter.Frame):
     This class manages the upper frame of the display.
     '''
     def __init__(self, master):
-        self.logger = Logger(self, Logger.DEBUG)
+        self.logger = Logger(self, Logger.INFO)
         self.logger.debug("constructor")
         self.master = master
         self.data_store = DataStore.get_instance()
@@ -212,7 +212,7 @@ class UpperFrame(tkinter.Frame):
             v = self.numHolesEntry.get()
             n = int(v)
             if n >= 1 and n <= 12:
-                # only raise the event if the number of holes is different from 
+                # only raise the event if the number of holes is different from
                 # what is in the data_store
                 if n != self.data_store.get_number_holes():
                     self.logger.debug("change number of holes from %d to %d"%(self.data_store.get_number_holes(), n))
@@ -273,14 +273,14 @@ class UpperFrame(tkinter.Frame):
                 self.displayFormatOpt.config(state=tkinter.DISABLED)
             else:
                 self.displayFormatOpt.config(state="readonly")
-                
+
             self.data_store.set_units(val)
             self.change_units()
             self.logger.debug("current units set to: %s"%(str(self.data_store.get_units())))
             self.data_store.set_change_flag()
         else:
             self.logger.debug("ignore")
-        
+
 
     @debugger
     def bellSelectCallback(self, event):
@@ -309,9 +309,9 @@ class UpperFrame(tkinter.Frame):
     @debugger
     def change_units(self):
         '''
-        When this is called, the assumption is that the GUI and the 
-        data_store have the wrong units. This function takes what ever 
-        is in the data_sore and converts if to the units that it finds 
+        When this is called, the assumption is that the GUI and the
+        data_store have the wrong units. This function takes what ever
+        is in the data_sore and converts if to the units that it finds
         there.  Then it updates the GUI.
         '''
         if self.data_store.get_units(): # true of units are mm
