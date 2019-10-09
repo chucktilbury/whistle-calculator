@@ -17,8 +17,8 @@ class Calculator:
         self.logger.debug("end constructor")
         register_event("CALCULATE_EVENT", self.do_calc)
 
-        self.isound = 13584.0
-        self.msound = self.isound * 25.4
+        # self.isound = self.data.get_vsound_in()
+        # self.msound = self.data.get_vsound_mm()
 
         self.max_loop = 12
         self.max_delta = 0.0001
@@ -33,6 +33,8 @@ class Calculator:
 
     @debugger
     def do_calc(self):
+        # self.isound = self.data.get_vsound_in()
+        # self.msound = self.data.get_vsound_mm()
         self.data.clear_hole_data()
         if self.data.get_calc_type() == 0:
             self.quadratic()
@@ -44,9 +46,10 @@ class Calculator:
 
     @debugger
     def closedCorrection(self, index):
-        b = self.data.get_inside_dia()
-        holeSize = self.data.get_hole_size(index)
-        p = (holeSize / b) * (holeSize / b)
+        # b = self.data.get_inside_dia()
+        # holeSize = self.data.get_hole_size(index)
+        # p = (holeSize / b) * (holeSize / b)
+        p = math.pow(self.data.get_hole_size(index) / self.data.get_inside_dia(), 2)
         retv = (self.data.get_wall_thickness() * p) / 4.0
         return retv
 
@@ -56,18 +59,27 @@ class Calculator:
         return self.data.get_wall_thickness() + (self.data.get_chim_const() * self.data.get_hole_size(index))
 
 
+    # C_emb = distance from theoretical start of air column to center of embouchure hole;
+    # the air column effectively extends beyond the blow hole center by this distance.
+    # (the cork face should be about 1 to 1.5 embouchure diameters from emb. center)
+    # C_emb := (Bore/Demb)*(Bore/Demb)*(wall+0.75*Demb); // per spreadsheet
+    # C_emb := (Bore/Demb)*(Bore/Demb)*(Bore/2 + wall + 0.6133*Demb/2); // an alternative
+    # C_emb := (Bore/Demb)*(Bore/Demb)*10.84*wall*Demb/(Bore + 2*wall); // kosel's empirical fit
+    #
+    # The area calculated must be translated back to a diameter. Then these formulas can be 
+    # applied correctly. 
     @debugger
     def embouchureCorrection(self):
-        #embarea = windowlen * windowwid; embarea *= 6.4516;
-        embArea = (self.data.get_emb_width() * self.data.get_emb_length() * 2 * math.pi)
-        embRadius = math.sqrt(embArea / math.pi)
+        # this "diameter" could be square, oval or round
+        embDia = 2.0 * math.sqrt(self.data.get_embouchure_area()/ math.pi)
 
-        # embdist = 3.14159265F * Embcorr * Cfg.borecent * Cfg.borecent / embarea * (Cfg.thickcent
-        # + 1.5F * (double) sqrt( (double) (embarea / 3.14159265F)));
-        embDist = ((math.pi * self.data.get_inside_dia() * self.data.get_inside_dia() * self.data.get_ecorr()) / embArea)
-        ccc = ((self.data.get_wall_thickness() + 1.5 * embRadius))
-        embDist = embDist * ccc
-        return embDist
+        p = math.pow(self.data.get_inside_dia() / embDia, 2)
+        # after testing these three formulae, the only one that is close if the first one. 
+        embDst =  p * (self.data.get_wall_thickness() + 0.75 * embDia)
+        #embDst = p * (self.data.get_inside_dia() / 2 + self.data.get_wall_thickness() + 0.6133 * embDia / 2)
+        #embDst = p * 10.84 * self.data.get_wall_thickness() * embDia / (self.data.get_inside_dia() + 2 * self.data.get_wall_thickness())
+
+        return embDst
 
 
     @debugger
@@ -83,7 +95,7 @@ class Calculator:
 
     @debugger
     def endCorrection(self):
-        return 0.6133 * self.data.get_inside_dia() / 2  # original flutomat
+        return self.data.get_ecorr() * self.data.get_inside_dia() / 2  # original flutomat
 
 
     @debugger
@@ -109,7 +121,6 @@ class Calculator:
         # // ( (double) sqrt((double) 1.0F + 4.0F * Cfg.height[n] / Cfg.hs[n] *
         # // (double) pow((double) (Cfg.borecent / Cfg.diacent[n]), 2.0)) - 1.0F);
         # final double bore = hole.whistle.bore;
-
         a = self.data.get_inside_dia() / self.data.get_hole_size(index)
         b = a * a
         holeSp = self.holeSpacing(index)
@@ -123,29 +134,22 @@ class Calculator:
     def cutoffFrequency(self, index):
         dist = self.data.get_hole_location(index-1) - self.data.get_hole_location(index)
         sqrtTerm = math.sqrt(self.effectiveThickness(index) * dist)
-        ratio = self.vsound() / (2 * math.pi)
+        ratio = self.data.get_vsound() / (2 * math.pi)
         ratio = ratio * (self.data.get_hole_size(index) / self.data.get_inside_dia())
         ratio = ratio / sqrtTerm
         return ratio
 
-    @debugger 
-    def vsound(self):
-        if self.data.get_units():
-            return self.msound
-        else:
-            return self.isound
-
     @debugger
     def iterative(self):
         # Calculate position of end hole
-        xEnd = self.vsound() / (2 * self.data.get_bell_freq())
+        xEnd = self.data.get_vsound() / (2 * self.data.get_bell_freq())
         xEnd = xEnd - self.endCorrection()
         for i in range(self.data.get_number_holes()):
             xEnd = xEnd - self.closedCorrection(i)
         self.data.set_end_location(xEnd)
 
         # find first finger hole location
-        nominalPosition = self.vsound() / (2 * self.data.get_hole_freq(0))
+        nominalPosition = self.data.get_vsound() / (2 * self.data.get_hole_freq(0))
         self.data.set_hole_location(0, 0.0)
         delta = 10.0
 
@@ -166,7 +170,7 @@ class Calculator:
         # set subsequent finger hole locations
         for holeNum in range(1, self.data.get_number_holes()):
             # final Hole hole = whistle.hole[holeNum]
-            nominalPosition = self.vsound() / (2 * self.data.get_hole_freq(holeNum))
+            nominalPosition = self.data.get_vsound() / (2 * self.data.get_hole_freq(holeNum))
             self.data.set_hole_location(holeNum, 0.0)
             delta = 10.0
             for i in range(self.max_loop):
@@ -179,7 +183,7 @@ class Calculator:
 
                 delta = math.fabs(self.data.get_hole_location(holeNum) - oldPosition)
 
-        self.embouchureCorrection()
+        self.data.set_length(self.data.get_end_location() - self.embouchureCorrection())
         for holeNum in range(self.data.get_number_holes()):
             self.data.set_hole_cutoff(holeNum, self.cutoffFrequency(holeNum))
             self.data.set_hole_rcutoff(holeNum, self.data.get_hole_cutoff(holeNum) / self.data.get_hole_freq(holeNum))
@@ -193,7 +197,7 @@ class Calculator:
     @debugger
     def quadratic(self):
             # Calculate position of end hole
-        xEnd = self.vsound() / (2 * self.data.get_bell_freq())
+        xEnd = self.data.get_vsound() / (2 * self.data.get_bell_freq())
         xEnd = xEnd - self.endCorrection()
 
         for i in range(self.data.get_number_holes()):
@@ -201,7 +205,7 @@ class Calculator:
         self.data.set_end_location(xEnd)
 
         # Calculate the position of the first tone hole
-        length = self.vsound() / (2 * self.data.get_hole_freq(0))
+        length = self.data.get_vsound() / (2 * self.data.get_hole_freq(0))
         for i in range(1, self.data.get_number_holes()):
             length = length - self.closedCorrection(i)
 
@@ -217,7 +221,7 @@ class Calculator:
 
             # find subsequent finger hole locations
             for holeNum in range(1, self.data.get_number_holes()):
-                length = self.vsound() / (2.0 * self.data.get_hole_freq(holeNum))
+                length = self.data.get_vsound() / (2.0 * self.data.get_hole_freq(holeNum))
                 for i in range(holeNum + 1, self.data.get_number_holes()):
                     length = length - self.closedCorrection(i)
 
@@ -238,7 +242,8 @@ class Calculator:
             self.logger.error("%s: a = %f, b = %f, c = %f, v = %f"%(str(e), a, b, c, v))
 
 
-        self.embouchureCorrection()
+        #self.embouchureCorrection()
+        self.data.set_length(self.data.get_end_location() - self.embouchureCorrection())
         for holeNum in range(self.data.get_number_holes()):
             self.data.set_hole_cutoff(holeNum, self.cutoffFrequency(holeNum))
             self.data.set_hole_rcutoff(holeNum, self.data.get_hole_cutoff(holeNum) / self.data.get_hole_freq(holeNum))

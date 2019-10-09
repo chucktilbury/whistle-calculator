@@ -499,7 +499,32 @@ class DataStore:
     def get_change_flag(self):
         return self.change_flag
 
+    @debugger
+    def get_temperature(self):
+        return self.internal_data['temperature']
+
+    # @debugger
+    # def get_humidity(self):
+    #     return self.internal_data['humidity']
+
+    @debugger
+    def get_length(self):
+        return self.internal_data['length']
+
+
     ######################################################################
+
+    @debugger
+    def set_length(self, val):
+        self.internal_data['length'] = self.validate_type(val, float)
+
+    @debugger
+    def set_temperature(self, val):
+        self.internal_data['temperature'] = self.validate_type(val, float)
+
+    # @debugger
+    # def set_humidity(self, val):
+    #     self.internal_data['humidity'] = self.validate_type(val, float)
 
     @debugger
     def clear_change_flag(self):

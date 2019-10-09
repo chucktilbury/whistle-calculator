@@ -161,7 +161,7 @@ class MainFrame(tkinter.Frame):
                     fh.write("UNITS:      inches\n")
                 else:
                     fh.write("UNITS:      millimeters\n")
-                fh.write("LENGTH:     %0.4f\n"%(self.data.get_end_location()))
+                fh.write("LENGTH:     %0.4f\n"%(self.data.get_length()))
                 fh.write("\n%s\n"%("-"*60))
                 fh.write("          Drill     Location    Note       Frequency\n")
                 for x in range(self.data.get_number_holes()):
@@ -191,10 +191,14 @@ class MainFrame(tkinter.Frame):
     @debugger
     def emboCommand(self):
         dialogs.EmbouchureDialog(self.master)
+        raise_event("UPDATE_LOWER_FRAME_EVENT")
+        raise_event("UPDATE_UPPER_EVENT")
 
     @debugger
     def constCommand(self):
         dialogs.ConstDialog(self.master)
+        raise_event("UPDATE_LOWER_FRAME_EVENT")
+        raise_event("UPDATE_UPPER_EVENT")
 
     @debugger
     def notesCommand(self):

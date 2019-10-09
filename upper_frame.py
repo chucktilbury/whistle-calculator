@@ -138,7 +138,7 @@ class UpperFrame(tkinter.Frame):
 
         self.lengthEntry.config(state=tkinter.NORMAL)
         self.lengthEntry.delete(0, tkinter.END)
-        self.lengthEntry.insert(0, "%0.4f"%(self.data_store.get_end_location()))
+        self.lengthEntry.insert(0, "%0.4f"%(self.data_store.get_length()))
         self.lengthEntry.config(state="readonly")
 
     @debugger

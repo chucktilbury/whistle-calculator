@@ -257,15 +257,18 @@ def make_default():
         'bell_freq': 587.33,
         'vsound_in': 13584.0,
         'vsound_mm': 13584.0 * 25.4,
+        'temperature': 72.0,
+        #'humidity': 50,
         
         # embouchure data, considered configuration
-        'embouchure_area': 1.2,
+        'embouchure_area': 0.0656,
         'emb_length': 0.175,
         'emb_width': 0.375,
         'emb_diameter': 0.0,
         'emb_type': 0, # 0 = rectangle, 1 = oval, 2 = round
-        'ecorr':0.25,
+        'ecorr':0.6133,
         'chim_const': 0.75,
+        'length': 10.5,
 
         # holes data
         'intervals': [0, 2, 2, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2],
