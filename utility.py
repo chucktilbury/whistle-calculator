@@ -171,6 +171,22 @@ def rnd(num, factor):
         logger.debug("return: %f"%(b))
         return b
 
+def calculate_embou_area(select, width, height, diameter):
+
+    if select == 0:
+        # calculate area for rectangle
+        area = width * height
+    elif select == 1:
+        # calculate area for oval
+        area = (width * height) + (math.pi * math.pow(height/2, 2))
+    else:
+        # calculate area for round
+        area = math.pi * math.pow(diameter/2, 2)
+
+    return area
+
+
+
 '''
 The reason that the event handler exists is that the tkinter event
 handler does not have a mechanism to send events to anything but a widget

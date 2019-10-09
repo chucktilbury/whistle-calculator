@@ -1,6 +1,6 @@
 import sys, os, pickle, pprint
 from tkinter import messagebox as mbox
-from utility import Logger, debugger
+from utility import Logger, debugger, register_event
 import utility
 #from exception import AppError, AppFatalError, AppWarning
 #from configuration import Configuration
@@ -151,20 +151,47 @@ class DataStore:
             {"note":"B8",      "frequency":7902.13}  # index = 107
         ]
 
+        register_event("CHANGE_UNITS_EVENT", self.change_units)
+
         # default values
         self.internal_data = {}
         if not os.path.isfile('default.wis'):
             utility.make_default()
         self.load()
-        
-
-        # self.intervals = [2, 2, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2]
 
         self.bellNoteArray = []
         for num in range(len(self.note_table)):
                 self.bellNoteArray.append("%s (%s Hz)"%(self.note_table[num]["note"], str(self.note_table[num]["frequency"])))
 
         self.logger.debug("leave constructor")
+
+    @debugger
+    def change_units(self):
+        '''
+        This function is a catch-all for values that dont get converted
+        elsewhere when the units are switched.
+        '''
+        # 'embouchure_area': 0.0656,
+        # 'emb_length': 0.175,
+        # 'emb_width': 0.375,
+        # 'emb_diameter': 0.0,
+        # 'length': 10.5,
+
+        # if this is true, then change mm to in, else change in to mm
+        if self.internal_data['units']:
+            self.internal_data['emb_length'] = utility.in_to_mm(self.internal_data['emb_length'])
+            self.internal_data['emb_width'] = utility.in_to_mm(self.internal_data['emb_width'])
+            self.internal_data['emb_diameter'] = utility.in_to_mm(self.internal_data['emb_diameter'])
+            # Must be recalculated
+            #self.internal_data['length'] = utility.in_to_mm(self.internal_data['length'])
+            #self.internal_data['embouchure_area'] = utility.in_to_mm(self.internal_data['embouchure_area'])
+        else:
+            self.internal_data['emb_length'] = utility.mm_to_in(self.internal_data['emb_length'])
+            self.internal_data['emb_width'] = utility.mm_to_in(self.internal_data['emb_width'])
+            self.internal_data['emb_diameter'] = utility.mm_to_in(self.internal_data['emb_diameter'])
+            #Both of these must be recalculated
+            #self.internal_data['length'] = utility.mm_to_in(self.internal_data['length'])
+            #self.internal_data['embouchure_area'] = utility.mm_to_in(self.internal_data['embouchure_area'])
 
     # file IO
     @debugger
@@ -191,7 +218,7 @@ class DataStore:
 
             with open(fname, "wb") as fh:
                 pickle.dump(self.internal_data, fh, protocol=pickle.HIGHEST_PROTOCOL)
-            
+
             self.clear_change_flag()
         except Exception as e:
                 mbox.showerror("ERROR", "Cannot save the whistle file \"%s\"\nException: %s"%(fname, str(e)))
@@ -331,14 +358,14 @@ class DataStore:
             return self.internal_data['hole_mm_inc']
         else:
             return self.internal_data['hole_in_inc']
-    
+
     @debugger
     def get_hole_max(self):
         if self.internal_data['units']:
             return self.internal_data['hole_mm_max']
         else:
             return self.internal_data['hole_in_max']
-    
+
     @debugger
     def get_hole_min(self):
         if self.internal_data['units']:
@@ -349,11 +376,11 @@ class DataStore:
     @debugger
     def get_hole_inc_in(self):
         return self.internal_data['hole_in_inc']
-    
+
     @debugger
     def get_hole_max_in(self):
         return self.internal_data['hole_in_max']
-    
+
     @debugger
     def get_hole_min_in(self):
         return self.internal_data['hole_in_min']
@@ -361,11 +388,11 @@ class DataStore:
     @debugger
     def get_hole_inc_mm(self):
         return self.internal_data['hole_mm_inc']
-    
+
     @debugger
     def get_hole_max_mm(self):
         return self.internal_data['hole_mm_max']
-    
+
     @debugger
     def get_hole_min_mm(self):
         return self.internal_data['hole_mm_min']
@@ -376,14 +403,14 @@ class DataStore:
             self.internal_data['hole_mm_inc'] = self.validate_type(val, float)
         else:
             self.internal_data['hole_in_inc'] = self.validate_type(val, float)
-    
+
     @debugger
     def set_hole_max(self, val):
         if self.internal_data['units']:
             self.internal_data['hole_mm_max'] = self.validate_type(val, float)
         else:
             self.internal_data['hole_in_max'] = self.validate_type(val, float)
-    
+
     @debugger
     def set_hole_min(self, val):
         if self.internal_data['units']:
@@ -394,27 +421,27 @@ class DataStore:
     @debugger
     def set_hole_inc_in(self, val):
         self.internal_data['hole_in_inc'] = self.validate_type(val, float)
-    
+
     @debugger
     def set_hole_max_in(self, val):
         self.internal_data['hole_in_max'] = self.validate_type(val, float)
-    
+
     @debugger
     def set_hole_min_in(self, val):
         self.internal_data['hole_in_min'] = self.validate_type(val, float)
-    
+
     @debugger
     def set_hole_inc_mm(self, val):
         self.internal_data['hole_mm_inc'] = self.validate_type(val, float)
-    
+
     @debugger
     def set_hole_max_mm(self, val):
         self.internal_data['hole_mm_max'] = self.validate_type(val, float)
-    
+
     @debugger
     def set_hole_min_mm(self, val):
         self.internal_data['hole_mm_min'] = self.validate_type(val, float)
-    
+
     @debugger
     def get_hole_size(self, index):
         return self.internal_data['hole_sizes'][index+1]
@@ -462,7 +489,7 @@ class DataStore:
     @debugger
     def get_calc_type(self):
         return self.internal_data['calc_type']
-    
+
     @debugger
     def get_vsound_in(self):
         return self.internal_data['vsound_in']
@@ -533,7 +560,7 @@ class DataStore:
     @debugger
     def set_max_delta(self, val):
         self.internal_data['max_delta'] = self.validate_type(val, float)
-        
+
     @debugger
     def set_notes(self, val):
         self.internal_data['text_notes'] = self.validate_type(val, str)
@@ -610,7 +637,7 @@ class DataStore:
     def validate_type(self, var, t):
         '''
         Validate the type of the srguement. If it cannot be converted, then the program cannot continue.
-        This is considered a developer error. The exceptions here only happen if the input validation 
+        This is considered a developer error. The exceptions here only happen if the input validation
         from the GUI has failed.
         '''
         if type(var) != t:

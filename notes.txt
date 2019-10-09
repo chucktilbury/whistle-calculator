@@ -1,10 +1,13 @@
 
 Open Bugs:
-- Constants do not change value when switching units
+- Cannot enter hole size directly.
+- Cannot enter fractional values for embouchure.
+- Length is increasingly inaccurate for lower bell notes.
 
 Fixed Bugs:
 - The change flag is set by the embouchure dialog when no changes were made.
 - Update lower frame after configuration.
+- Constants do not change value when switching units
 
 Future features:
 1. Support for symmetric and arbitrary conical bores.

@@ -3,6 +3,7 @@ from tkinter import ttk
 import tkinter
 import math
 from utility import Logger, debugger
+import utility
 from data_store import DataStore
 
 help_text = """
@@ -530,15 +531,16 @@ class EmbouchureDialog(BaseDialog):
     @debugger
     def calculate(self):
         if self.validate():
-            if self.selection == 0:
-                # calculate area for rectangle
-                self.area = self.width * self.height
-            elif self.selection == 1:
-                # calculate area for oval
-                self.area = (self.width * self.height) + (math.pi * math.pow(self.height/2, 2))
-            else:
-                # calculate area for round
-                self.area = math.pi * math.pow(self.diameter/2, 2)
+            # if self.selection == 0:
+            #     # calculate area for rectangle
+            #     self.area = self.width * self.height
+            # elif self.selection == 1:
+            #     # calculate area for oval
+            #     self.area = (self.width * self.height) + (math.pi * math.pow(self.height/2, 2))
+            # else:
+            #     # calculate area for round
+            #     self.area = math.pi * math.pow(self.diameter/2, 2)
+            self.area = utility.calculate_embou_area(self.selection, self.width, self.height, self.diameter)
 
             self.logger.debug("set the area to %f"%(self.area))
             self.areaEntry.config(state='normal')
