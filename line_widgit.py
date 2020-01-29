@@ -117,7 +117,7 @@ class LineWidgit(tkinter.Frame):
             val = int(self.inter_ctl.get())
             oldval = self.data_store.get_hole_interval(self.index)
             if val != oldval:
-                if val > 0 and val < 5:
+                if val > 0 and val < 9:
                     self.data_store.set_hole_interval(self.index, val)
                     self.logger.debug("change interval from %d to %d"%(oldval, val))
                     raise_event("UPDATE_NOTES_EVENT")
